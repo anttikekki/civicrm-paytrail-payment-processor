@@ -117,8 +117,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
 
     if ( $contribution->total_amount != $input['amount'] ) {
       CRM_Core_Error::debug_log_message( "Amount values dont match between database and IPN request" );
-      echo "Failure: Amount values dont match between database and IPN request."\
-            .$contribution->total_amount."/".$input['amount']."<p>";
+      echo "Failure: Amount values dont match between database and IPN request.".$contribution->total_amount."/".$input['amount']."<p>";
       return;
     }
 
@@ -185,13 +184,18 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       echo "Failure: Could not find contribution record for $contributionID<p>";
       exit();
     }
-
-    if (stristr($contribution->source, 'Online Contribution')) {
+    
+    if ($contribution->contribution_page_id) {
       $component = 'contribute';
     }
-    elseif (stristr($contribution->source, 'Online Event Registration')) {
+    elseif ($privateData['eventID']) {
       $component = 'event';
     }
+    else {
+      CRM_Core_Error::fatal("contribution_page_id is null and eventID is null. Can not solve context.");
+      return;
+    }
+    
     $isTest = $contribution->is_test;
 
     $duplicateTransaction = 0;
@@ -209,7 +213,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
 
       // get the payment processor id from contribution page
       $paymentProcessorID = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_ContributionPage',
-                            $contribution->contribution_page_id, 'payment_processor_id');
+                            $contribution->contribution_page_id, 'payment_processor');
     }
     else {
       $eventID = $privateData['eventID'];
@@ -263,13 +267,13 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     $privateData['eventID'] = 			  (isset($order_array[4])) ? $order_array[4] : '';
     $privateData['participantID'] = 	(isset($order_array[5])) ? $order_array[5] : '';
     $privateData['membershipID'] = 		(isset($order_array[6])) ? $order_array[6] : '';
-    $privateData['qfKey'] = $_GET["qfKey"]:
+    $privateData['amount'] = 		      (isset($order_array[7])) ? $order_array[7] : '';
+    $privateData['qfKey'] = $_GET["qfKey"];
 
     list($mode, $component, $paymentProcessorID, $duplicateTransaction) = self::getContext($privateData);
     $mode = $mode ? 'test' : 'live';
 
-    require_once 'CRM/Core/BAO/PaymentProcessor.php';
-    $paymentProcessor = CRM_core_BAO_PaymentProcessor::getPayment($paymentProcessorID, $mode);
+    $paymentProcessor = CRM_Financial_BAO_PaymentProcessor::getPayment($paymentProcessorID, $mode);
 	
     //Validate Paytrail result
     require_once("Verkkomaksut_Module_Rest.php");
@@ -282,6 +286,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     }
     else {
       CRM_Core_Error::debug_log_message("Failure: Paytrail notify is incorrect");
+      CRM_Core_Error::fatal('maksu epäonnistui');
       $success = false;
     }
  
@@ -297,7 +302,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       // Success. Process the transaction.
       if ($duplicateTransaction == 0) {
         $ipn=& self::singleton($mode, $component, $paymentProcessor);
-        $amount = $_GET["PAID"];
+        $amount = (float) $privateData['amount'];
         $transactionId = $_GET["TIMESTAMP"];
         $ipn->newOrderNotify($success, $privateData, $component, $amount, $transactionId);
       }

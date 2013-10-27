@@ -105,17 +105,18 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
 
     //Add CiviCRM paramters to order ID. Order Id is returned to PaytrailIPN in ORDER_NUMBER-parameter.
     $orderID = array(
-      $params['invoiceID'],
-      $params['contactID'],
-      $params['contributionID'],
-      $params['contributionTypeID'],
-      $params['eventID'],
-      $params['participantID'],
-      $params['membershipID']
+      (isset($params['invoiceID'])) ? $params['invoiceID'] : '',
+      (isset($params['contactID'])) ? $params['contactID'] : '',
+      (isset($params['contributionID'])) ? $params['contributionID'] : '',
+      (isset($params['contributionTypeID'])) ? $params['contributionTypeID'] : '',
+      (isset($params['eventID'])) ? $params['eventID'] : '',
+      (isset($params['participantID'])) ? $params['participantID'] : '',
+      (isset($params['membershipID'])) ? $params['membershipID'] : '',
+      (isset($params['amount'])) ? $params['amount'] : ''
     );
     
-    // Return URL from Paytrail. $config->userFrameworkResourceURL is /sites/all/modules/civicrm
-    $notifyURL = $config->userFrameworkResourceURL . "../../../default/files/civicrm/extension/com.github.anttikekki.payment.paytrail/PaytrailNotify.php";
+    // Return URL from Paytrail
+    $notifyURL = $config->userFrameworkResourceURL . "extern/PaytrailNotify.php";
     
     //qfKey makes the orderId too long (over 64 chars that is maximum) so we need to pass it in return URL
     $notifyURL .= "?qfKey=" . $params['qfKey'];
