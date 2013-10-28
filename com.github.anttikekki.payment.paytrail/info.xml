@@ -8,7 +8,7 @@
     <url desc="Main Extension Page">https://github.com/anttikekki/civicrm-paytrail-payment-processor</url>
     <url desc="Documentation"></url>
     <url desc="Support"></url>
-    <url desc="Licensing"></url>
+    <url desc="Licensing">https://github.com/anttikekki/civicrm-paytrail-payment-processor/blob/master/LICENSE</url>
   </urls>
   <license>Apache License Version 2.0</license>
   <maintainer>
