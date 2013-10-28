@@ -156,7 +156,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
    */
   static function &singleton($mode, $component, &$paymentProcessor) {
     if (self::$_singleton === null) {
-      self::$_singleton = new CRM_Core_Payment_OgoneIPN($mode, $paymentProcessor);
+      self::$_singleton = new com_github_anttikekki_payment_paytrailIPN($mode, $paymentProcessor);
     }
     return self::$_singleton;
   }
@@ -235,8 +235,8 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
         exit();
       }
 
-      // get the payment processor id from contribution page
-      $paymentProcessorID = $event->payment_processor_id;
+      // get the payment processor id from event
+      $paymentProcessorID = $event->payment_processor;
     }
 
     if (!$paymentProcessorID) {
@@ -277,8 +277,8 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
 	
     //Validate Paytrail result
     require_once("Verkkomaksut_Module_Rest.php");
-    $merchantId = $paymentProcessorID['user_name'];
-    $merchantSecret = $paymentProcessorID['password'];
+    $merchantId = $paymentProcessor['user_name'];
+    $merchantSecret = $paymentProcessor['password'];
     $module = new Verkkomaksut_Module_Rest($merchantId, $merchantSecret);
     
     if($module->confirmPayment($_GET["ORDER_NUMBER"], $_GET["TIMESTAMP"], $_GET["PAID"], $_GET["METHOD"], $_GET["RETURN_AUTHCODE"])) {
@@ -286,7 +286,6 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     }
     else {
       CRM_Core_Error::debug_log_message("Failure: Paytrail notify is incorrect");
-      CRM_Core_Error::fatal('maksu epäonnistui');
       $success = false;
     }
  
