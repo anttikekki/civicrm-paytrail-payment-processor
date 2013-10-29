@@ -1,13 +1,18 @@
 civicrm-paytrail-payment-processor
 ==================================
 
-CiviCRM Payment Processor for [Paytrail](http://paytrail.com). 
+[CiviCRM](https://civicrm.org/) Payment Processor for [Paytrail](http://paytrail.com) (formerly Suomen Verkkomaksut). 
 
-It uses Paytrail [REST API](http://docs.paytrail.com/en/ch04s03.html) and includes Paytrail REST [PHP Module file](http://docs.paytrail.com/files/Verkkomaksut_Module_Rest.php.zip). Paytrail only supports payments in Euros.
+It uses Paytrail [REST API](http://docs.paytrail.com/en/ch04s03.html) and includes Paytrail REST [PHP Module file](http://docs.paytrail.com/files/Verkkomaksut_Module_Rest.php.zip).
 
 This payment processor only supports type 4 (notify) payment type (more info of all the types from CiviCRM [wiki](http://wiki.civicrm.org/confluence/display/CRMDOC/Create+a+Payment-Processor+Extension)). Browser is redirected to Paytrail site for payment and then redirected back to CiviCRM. No payment info is gathered in CiviCRM. CiviCRM receives notification after succesfull or canceled payment.
 
 This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
+
+#### Restrictions
+
+- Paytrail only supports payments in Euros
+- Paytrail and this payment processor does not support recurring payments
 
 ## Installation
 
