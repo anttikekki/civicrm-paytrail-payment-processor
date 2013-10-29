@@ -9,6 +9,14 @@ This payment processor only supports type 4 (notify) payment type (more info of 
 
 This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
 
+#### Information sent to Paytrail
+
+This payment processor uses limited S1 version of payment info API ([example code](http://docs.paytrail.com/en/ch04s03.html#idp769920)). This means only order number (CiviCRM invoice id) and amount is sent to Paytrail. This means there is no information about contribution or event visible in Paytrail admin site other than CiviCRM invoice id.
+
+#### Transaction identification
+
+CiviCRM contribution invoice id is sent to Paytrail as transaction identification ORDER_NUMBER-field. This order id/invoice id is visible in CiviCRM contribution information. This links Paytrail transaction to CiviCRM transaction. 
+
 #### Restrictions
 
 - Paytrail only supports payments in Euros
