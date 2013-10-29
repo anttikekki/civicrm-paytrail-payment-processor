@@ -102,24 +102,19 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     if ($component != 'contribute' && $component != 'event') {
       CRM_Core_Error::fatal(ts('Component is invalid'));
     }
-
-    //Add CiviCRM paramters to order ID. Order Id is returned to PaytrailIPN in ORDER_NUMBER-parameter.
-    $orderID = array(
-      (isset($params['invoiceID'])) ? $params['invoiceID'] : '',
-      (isset($params['contactID'])) ? $params['contactID'] : '',
-      (isset($params['contributionID'])) ? $params['contributionID'] : '',
-      (isset($params['contributionTypeID'])) ? $params['contributionTypeID'] : '',
-      (isset($params['eventID'])) ? $params['eventID'] : '',
-      (isset($params['participantID'])) ? $params['participantID'] : '',
-      (isset($params['membershipID'])) ? $params['membershipID'] : '',
-      (isset($params['amount'])) ? $params['amount'] : ''
-    );
     
     // Return URL from Paytrail
     $notifyURL = $config->userFrameworkResourceURL . "extern/PaytrailNotify.php";
     
-    //qfKey makes the orderId too long (over 64 chars that is maximum) so we need to pass it in return URL
-    $notifyURL .= "?qfKey=" . $params['qfKey'];
+    //Add CiviCRM data to return URL
+    $notifyURL .= "?qfKey=" .             $params['qfKey'];
+    $notifyURL .= "&contactID=" .         ((isset($params['contactID'])) ? $params['contactID'] : '');
+    $notifyURL .= "&contributionID=" .    ((isset($params['contributionID'])) ? $params['contributionID'] : '');
+    $notifyURL .= "&contributionTypeID=" . ((isset($params['contributionTypeID'])) ? $params['contributionTypeID'] : '');
+    $notifyURL .= "&eventID=" .           ((isset($params['eventID'])) ? $params['eventID'] : '');
+    $notifyURL .= "&participantID=" .     ((isset($params['participantID'])) ? $params['participantID'] : '');
+    $notifyURL .= "&membershipID=" .      ((isset($params['membershipID'])) ? $params['membershipID'] : '');
+    $notifyURL .= "&amount=" .            ((isset($params['amount'])) ? $params['amount'] : '');
     
     $urlset = new Verkkomaksut_Module_Rest_Urlset(
       $notifyURL, // success
@@ -129,7 +124,7 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     );
 
     // Create payment
-    $orderNumber = implode('-', $orderID); //Max 64 chars: http://docs.paytrail.com/fi/ch04s04.html#idp1141168
+    $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
     $payment = new Verkkomaksut_Module_Rest_Payment_S1($orderNumber, $urlset, $price);
 

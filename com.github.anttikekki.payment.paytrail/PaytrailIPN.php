@@ -99,7 +99,6 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
 
       /* Make sure the invoice is valid and matches what we have in the contribution record */
     $input['invoice']    =  $privateData['invoiceID'];
-    $input['newInvoice'] =  $transactionReference;
     $contribution        =& $objects['contribution'];
     $input['trxn_id']  =    $transactionReference;
 
@@ -108,10 +107,6 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       echo "Failure: Invoice values dont match between database and IPN request<p>";
       return;
     }
-
-    // lets replace invoice-id with Payment Processor -number because thats what is common and unique
-    // in subsequent calls or notifications sent by google.
-    $contribution->invoice_id = $input['newInvoice'];
 
     $input['amount'] = $amount;
 
@@ -258,17 +253,16 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     require_once 'CRM/Utils/Request.php';
     $config = CRM_Core_Config::singleton();
 
-    // decode orderID. Paytrail returns it in ORDER_NUMBER-parameter.
-    $order_array = explode('-', $_GET["ORDER_NUMBER"]);
-    $privateData['invoiceID'] = 		  (isset($order_array[0])) ? $order_array[0] : '';
-    $privateData['contactID'] = 		  (isset($order_array[1])) ? $order_array[1] : '';
-    $privateData['contributionID'] = 	(isset($order_array[2])) ? $order_array[2] : '';
-    $privateData['contributionTypeID'] = (isset($order_array[3])) ? $order_array[3] : '';
-    $privateData['eventID'] = 			  (isset($order_array[4])) ? $order_array[4] : '';
-    $privateData['participantID'] = 	(isset($order_array[5])) ? $order_array[5] : '';
-    $privateData['membershipID'] = 		(isset($order_array[6])) ? $order_array[6] : '';
-    $privateData['amount'] = 		      (isset($order_array[7])) ? $order_array[7] : '';
-    $privateData['qfKey'] = $_GET["qfKey"];
+    //Get payment info from GET parameters. These are set to return URL before payment.
+    $privateData['invoiceID'] = 		  $_GET["ORDER_NUMBER"];
+    $privateData['contactID'] = 		  (isset($_GET["contactID"])) ? $_GET["contactID"] : '';
+    $privateData['contributionID'] = 	(isset($_GET["contributionID"])) ? $_GET["contributionID"] : '';
+    $privateData['contributionTypeID'] = (isset($_GET["contributionTypeID"])) ? $_GET["contributionTypeID"] : '';
+    $privateData['eventID'] = 			  (isset($_GET["eventID"])) ? $_GET["eventID"] : '';
+    $privateData['participantID'] = 	(isset($_GET["participantID"])) ? $_GET["participantID"] : '';
+    $privateData['membershipID'] = 		(isset($_GET["membershipID"])) ? $_GET["membershipID"] : '';
+    $privateData['amount'] = 		      (isset($_GET["amount"])) ? $_GET["amount"] : '';
+    $privateData['qfKey'] =           $_GET["qfKey"];
 
     list($mode, $component, $paymentProcessorID, $duplicateTransaction) = self::getContext($privateData);
     $mode = $mode ? 'test' : 'live';
@@ -302,7 +296,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       if ($duplicateTransaction == 0) {
         $ipn=& self::singleton($mode, $component, $paymentProcessor);
         $amount = (float) $privateData['amount'];
-        $transactionId = $_GET["TIMESTAMP"];
+        $transactionId = $_GET["ORDER_NUMBER"];
         $ipn->newOrderNotify($success, $privateData, $component, $amount, $transactionId);
       }
       
