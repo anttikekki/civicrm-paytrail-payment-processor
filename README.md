@@ -9,6 +9,10 @@ This payment processor only supports type 4 (notify) payment type (more info of 
 
 This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
 
+#### Version history
+
+- 1.0 Initial realease ([download](https://github.com/anttikekki/civicrm-paytrail-payment-processor/archive/1.0.zip))
+
 #### Information sent to Paytrail
 
 This payment processor uses limited S1 version of payment info API ([example code](http://docs.paytrail.com/en/ch04s03.html#idp769920)). This means only order number (CiviCRM invoice id) and amount is sent to Paytrail. This means there is no information about contribution or event visible in Paytrail admin site other than CiviCRM invoice id.
