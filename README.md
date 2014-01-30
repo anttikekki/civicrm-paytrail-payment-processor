@@ -26,7 +26,7 @@ CiviCRM contribution invoice id is sent to Paytrail as transaction identificatio
 - Paytrail only supports payments in Euros
 - Paytrail and this payment processor does not support recurring payments
 
-## Installation
+### Installation
 
 1. Copy `com.github.anttikekki.payment.paytrail` folder to CiviCRM `extension` directory. Extension directory has to be configured in _Administer->Configure->Global Settings->Directories->CiviCRM Extensions Directory_.
 
