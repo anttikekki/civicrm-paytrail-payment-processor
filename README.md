@@ -12,6 +12,7 @@ This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
 #### Version history
 
 - 1.0 Initial realease ([download](https://github.com/anttikekki/civicrm-paytrail-payment-processor/archive/1.0.zip))
+- 1.1 Licence change ([download](https://github.com/anttikekki/civicrm-paytrail-payment-processor/archive/1.1.zip))
 
 #### Information sent to Paytrail
 
@@ -28,9 +29,9 @@ CiviCRM contribution invoice id is sent to Paytrail as transaction identificatio
 
 ### Installation
 
-1. Copy `com.github.anttikekki.payment.paytrail` folder to CiviCRM `extension` directory. Extension directory has to be configured in _Administer->Configure->Global Settings->Directories->CiviCRM Extensions Directory_.
+1. Create `com.github.anttikekki.payment.paytrail` folder to CiviCRM `extension` directory and copy files into it. Extension directory has to be configured in _Administer->Configure->Global Settings->Directories->CiviCRM Extensions Directory_.
 
-2. Copy `PaytrailIPN.php`, `PaytrailNotify.php` and `Verkkomaksut_Module_Rest.php` to CiviCRM `extern` directory. Extern directory is in `[JOOMLA_DIRECTORY]/administrator/components/com_civicrm/civicrm/extern` in Joomla and `[DRUPAL_DIRECTORY]/sites/all/modules/civicrm/extern` in Drupal.
+2. Copy `PaytrailIPN.php`, `PaytrailNotify.php` and `Verkkomaksut_Module_Rest.php` to CiviCRM `extern` directory. Extern directory is in `[JOOMLA_DIRECTORY]/administrator/components/com_civicrm/civicrm/extern` in Joomla and `[DRUPAL_DIRECTORY]/sites/all/modules/civicrm/extern` in Drupal. There must also be copy of `Verkkomaksut_Module_Rest.php` in `com.github.anttikekki.payment.paytrail` (yep, same file in two places).
 
 3. Configure payment processor in _Administer->Customize->Manage CiviCRM Extensions_. You need to insert `Merchant id` and `Merchant secret` information that Paytrail has provided. URL field can be left blank. To test payment processor you can use test id from [Paytrail docs](http://docs.paytrail.com/en/ch04s02.html).
 
