@@ -23,19 +23,17 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   static private $_singleton = null;
 
   /**
-   * mode of operation: live or test
+   * Mode of operation: live or test
    *
-   * @var object
-   * @static
+   * @var string
    */
-  static protected $_mode = null;
+  protected $_mode = null;
 
   /**
    * Constructor
    *
    * @param string $mode the mode of operation: live or test
-   *
-   * @return void
+   * @param object $paymentProcessor the details of the payment processor being invoked
    */
   function __construct( $mode, &$paymentProcessor ) {
     $this->_mode = $mode;
@@ -46,27 +44,30 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   /**
    * singleton function used to manage this object
    *
-   * @param string $mode the mode of operation: live or test
+   * @param string  $mode the mode of operation: live or test
+   * @param object  $paymentProcessor the details of the payment processor being invoked
+   * @param object  $paymentForm      reference to the form object if available
+   * @param boolean $force            should we force a reload of this payment object
    *
    * @return object
-   * @static
-   *
    */
-  static function &singleton( $mode, &$paymentProcessor ) {
+  static function &singleton($mode = 'test', &$paymentProcessor, &$paymentForm = NULL, $force = FALSE) {
     $processorName = $paymentProcessor['name'];
     if (self::$_singleton[$processorName] === null ) {
       self::$_singleton[$processorName] = new com_github_anttikekki_payment_paytrail($mode, $paymentProcessor);
     }
     return self::$_singleton[$processorName];
   }
+  
 
   /**
    * This function checks to see if we have the right config values
    *
+   * @param  string $mode the mode we are operating in (live or test)
+   *
    * @return string the error message if any
-   * @public
    */
-  function checkConfig( ) {
+  public function checkConfig( ) {
     $config = CRM_Core_Config::singleton();
     $error = array();
     if (empty($this->_paymentProcessor['user_name'])) {
@@ -83,20 +84,25 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     }
   }
 
-  function doDirectPayment(&$params) {
+  /**
+   * This function collects all the information from a web/api form and invokes
+   * the relevant payment processor specific functions to perform the transaction
+   *
+   * @param  array $params assoc array of input parameters for this transaction
+   *
+   * @return array the result in an nice formatted array (or an error object)
+   */
+  public function doDirectPayment(&$params) {
     CRM_Core_Error::fatal(ts('doDirectPayment() function is not implemented'));
   }
 
   /**
    * Sets appropriate parameters for checking out to Paytrail
    *
-   * @param array $params  name value pair of contribution data
-   *
-   * @return void
-   * @access public
-   *
+   * @param array $params name value pair of contribution data
+   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
    */
-  function doTransferCheckout(&$params, $component) {
+  public function doTransferCheckout(&$params, $component) {
     $config = CRM_Core_Config::singleton();
 
     if ($component != 'contribute' && $component != 'event') {
@@ -144,5 +150,3 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     CRM_Utils_System::redirect($result->getUrl());
   }
 }
-
-
