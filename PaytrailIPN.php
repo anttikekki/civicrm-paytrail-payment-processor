@@ -27,10 +27,9 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
   /**
    * mode of operation: live or test
    *
-   * @var object
-   * @static
+   * @var string
    */
-  static protected $_mode = null;
+  protected $_mode = null;
 
   static function retrieve($name, $type, $object, $abort = true) {
     $value = CRM_Utils_Array::value($name, $object);
@@ -72,9 +71,6 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
    * @param array   $component             contribution type
    * @param amount  $amount                amount
    * @param string  $transactionReference  transaction reference
-   *
-   *  @return void
-   *
    */
   function newOrderNotify($status, $privateData, $component, $amount, $transactionReference) {
     $ids = $input = $params = array( );
@@ -145,6 +141,8 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
    * singleton function used to manage this object
    *
    * @param string $mode the mode of operation: live or test
+   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
+   * @param object $paymentProcessor the details of the payment processor being invoked
    *
    * @return object
    * @static
