@@ -130,9 +130,7 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     );
 
     // Create payment
-    $orderNumber = $params['invoiceID'];
-    $price = (float)$params['amount'];
-    $payment = new Verkkomaksut_Module_Rest_Payment_S1($orderNumber, $urlset, $price);
+    $payment = &$this->createS1PaymentObject($params, $urlset);
 
     // Send request to https://payment.verkkomaksut.fi with Merchant ID and Merchant secret
     $merchantId = $this->_paymentProcessor['user_name'];
@@ -148,5 +146,70 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
 
     // Redirect to URL received from REST request
     CRM_Utils_System::redirect($result->getUrl());
+  }
+  
+  private function &createS1PaymentObject(&$params, $urlset) {
+    $orderNumber = $params['invoiceID'];
+    $price = (float)$params['amount'];
+    $payment = new Verkkomaksut_Module_Rest_Payment_S1($orderNumber, $urlset, $price);
+    
+    return $payment;
+  }
+  
+  /**
+  * http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
+  */
+  private function &createE1PaymentObject(&$params, $urlset) {
+    $orderNumber = $params['invoiceID'];
+    $price = (float)$params['amount'];
+    
+    // An object is created to model payer’s data
+    $contact = new Verkkomaksut_Module_Rest_Contact(
+        $params['first_name'],                          //First name. Required
+        $params['last_name'],                           //Last name. Required
+        $params['email-5'],                             //Email. Required
+        $params['street_address-1'],                    //Street address. Required
+        $params['postal_code-1'],                       //Post code. Required
+        $params['city-1'],                              //Post office. Required
+        $this->getCountryISOCOde($params['country-1']), //Country ISO-3166-1 code. Required
+        "",                                             // Telephone number. Optional
+        "",                                             // Mobile phone number. Optional
+        ""                                              // Company name. Optional
+    );
+
+    // Payment creation
+    $payment = new Verkkomaksut_Module_Rest_Payment_E1($orderNumber, $urlset, $contact);
+    
+    //Set optional description. This is only visible in Paytrail Merchant admin panel.
+    $description = $params['first_name']." "
+      .$params['last_name'].". "
+      .$params['item_name'].". "
+      .$params['amount']." €";
+    $payment->setDescription();
+
+    // Adding one or more product rows to the payment
+    $payment->addProduct(
+        $params['item_name'],               // product title. Required
+        "",                                 // product code. Optional
+        "1.00",                             // product quantity. Required
+        $params['amount'],                  // product price (/apiece). Required
+        "0.00",                             // Tax percentage (VAT). Required
+        "0.00",                             // Discount percentage, Optional
+        Verkkomaksut_Module_Rest_Product::TYPE_NORMAL	// Product type, Optional		
+    );
+    
+    return $payment;
+  }
+  
+  private function getCountryISOCOde($countryId) {
+    $countryId = (int) $countryId;
+  
+    $sql = "
+      SELECT iso_code
+      FROM civicrm_country
+      WHERE id = $countryId
+    ";
+    
+    return CRM_Core_DAO::singleValueQuery($sql);
   }
 }
