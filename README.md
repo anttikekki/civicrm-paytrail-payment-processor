@@ -21,6 +21,7 @@ This payment processor can use S1 or E1 version of payment info API ([example co
 In S1 version only order number (CiviCRM invoice id) and amount is sent to Paytrail. This means there is no information about contribution or event visible in Paytrail admin site other than CiviCRM invoice id.
 
 In E1 version there is a lot more info that is sent to Paytrail:
+* order number (CiviCRM invoice id)
 * First name
 * Last name
 * Email
@@ -61,5 +62,26 @@ Configuration allows to customize data sent to Paytrail in E1 API mode.
 **Common configuration**
 
 | Key | Default | Description  |
-| ------------- |:-------------:| -----:|
+| ------------- |-------------| -----|
 | `apiMode` | `E1` | API mode. `E1` or `S1` |
+
+**Contribution page default field values**
+
+| Key | Default | Description  |
+| ------------- |-------------| -----|
+| `e1.contribute.value.firstName` |  | Customer first name |
+| `e1.contribute.value.lastName` |  | Customer last name |
+| `e1.contribute.value.email` |  | Customer email |
+| `e1.contribute.value.streetAddress` |  | Customer street address |
+| `e1.contribute.value.postalCode` |  | Customer post code |
+| `e1.contribute.value.city` |  | Customer city |
+| `e1.contribute.value.country` | FI | Customer country |
+| `e1.contribute.value.telephone` |  | Customer telephone number |
+| `e1.contribute.value.mobile` |  | Customer mobile number |
+| `e1.contribute.value.companyName` |  | Company name |
+| `e1.contribute.value.productQuantity` | 1.00 | Product quantity |
+| `e1.contribute.value.productVat` | 0.00 | Tax (VAT) |
+| `e1.contribute.value.productDiscountPercentage` | 0.00 | Discount percentage |
+| `e1.contribute.value.productType` | 1 | Product type. 1 for normal products. 2 for posting expences. 3 for handling expences |
+| `e1.contribute.value.productCode` |  | Product code |
+| `e1.contribute.value.productPrice` |  | Products price |
