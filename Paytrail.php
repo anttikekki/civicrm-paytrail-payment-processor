@@ -11,6 +11,22 @@
  */
 
 require_once 'Verkkomaksut_Module_Rest.php';
+require_once 'PaytrailConfigHelper.php';
+
+/**
+* Implements CiviCRM 'install' hook.
+*/
+function paytrail_civicrm_install() {
+  //Add table for configuration
+  $sql = "
+    CREATE TABLE IF NOT EXISTS civicrm_paytrail_payment_processor_config (
+      config_key varchar(255) NOT NULL,
+      config_value varchar(255) NOT NULL,
+      PRIMARY KEY (`config_key`)
+    ) ENGINE=InnoDB;
+  ";
+  CRM_Core_DAO::executeQuery($sql);
+}
 
 class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   /**
@@ -97,20 +113,21 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   }
 
   /**
-   * Sets appropriate parameters for checking out to Paytrail
+   * Sets appropriate parameters for checking out to Paytrail. Parameters can be customized with PaytrailConfigHelper.
    *
-   * @param array $params name value pair of contribution data
+   * @param array $params name value pair of form data
    * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
    */
   public function doTransferCheckout(&$params, $component) {
-    $config = CRM_Core_Config::singleton();
+    $civiCRMConfig = CRM_Core_Config::singleton();
+    $paytrailConfig = new PaytrailConfigHelper($params);
 
     if ($component != 'contribute' && $component != 'event') {
       CRM_Core_Error::fatal(ts('Component is invalid'));
     }
     
     // Return URL from Paytrail
-    $notifyURL = $config->userFrameworkResourceURL . "extern/PaytrailNotify.php";
+    $notifyURL = $civiCRMConfig->userFrameworkResourceURL . "extern/PaytrailNotify.php";
     
     //Add CiviCRM data to return URL
     $notifyURL .= "?qfKey=" .             $params['qfKey'];
@@ -130,7 +147,12 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     );
 
     // Create payment
-    $payment = &$this->createS1PaymentObject($params, $urlset);
+    if($paytrailConfig->get("apiMode") == PaytrailConfigHelper::API_MODE_S1) {
+      $payment = &$this->createS1PaymentObject($params, $urlset, $component, $paytrailConfig);
+    }
+    else {
+      $payment = &$this->createE1PaymentObject($params, $urlset, $component, $paytrailConfig);
+    }
 
     // Send request to https://payment.verkkomaksut.fi with Merchant ID and Merchant secret
     $merchantId = $this->_paymentProcessor['user_name'];
@@ -148,7 +170,16 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     CRM_Utils_System::redirect($result->getUrl());
   }
   
-  private function &createS1PaymentObject(&$params, $urlset) {
+  /**
+  * Create Paytrail payment object for S1 API version. S1 API requires only order number and price.
+  *
+  * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
+  * @param array $params name value pair of form data
+  * @param Verkkomaksut_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
+  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
+  * @param PaytrailConfigHelper $paytrailConfig Paytrail config helper instance
+  */
+  private function &createS1PaymentObject(&$params, $urlset, $component, &$paytrailConfig) {
     $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
     $payment = new Verkkomaksut_Module_Rest_Payment_S1($orderNumber, $urlset, $price);
@@ -157,59 +188,64 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   }
   
   /**
-  * http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
+  * Create Paytrail payment object for E1 API version. E1 API requires following fields:
+  * - First name
+  * - Last name
+  * - Email
+  * - Street address
+  * - Post code
+  * - Post office
+  * - Country
+  * - Product title
+  * - Product quantity
+  * - Product price
+  * - Tax (VAT)
+  *
+  * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
+  * @param array $params name value pair of form data
+  * @param Verkkomaksut_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
+  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
+  * @param PaytrailConfigHelper $paytrailConfig Paytrail config helper instance
   */
-  private function &createE1PaymentObject(&$params, $urlset) {
+  private function &createE1PaymentObject(&$params, $urlset, $component, &$paytrailConfig) {
     $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
     
     // An object is created to model payer’s data
     $contact = new Verkkomaksut_Module_Rest_Contact(
-        $params['first_name'],                          //First name. Required
-        $params['last_name'],                           //Last name. Required
-        $params['email-5'],                             //Email. Required
-        $params['street_address-1'],                    //Street address. Required
-        $params['postal_code-1'],                       //Post code. Required
-        $params['city-1'],                              //Post office. Required
-        $this->getCountryISOCOde($params['country-1']), //Country ISO-3166-1 code. Required
-        "",                                             // Telephone number. Optional
-        "",                                             // Mobile phone number. Optional
-        ""                                              // Company name. Optional
+      $paytrailConfig->get("e1.$component.value.firstName"),      //First name. Required
+      $paytrailConfig->get("e1.$component.value.lastName"),       //Last name. Required
+      $paytrailConfig->get("e1.$component.value.email"),          //Email. Required
+      $paytrailConfig->get("e1.$component.value.streetAddress"),  //Street address. Required
+      $paytrailConfig->get("e1.$component.value.postalCode"),     //Post code. Required
+      $paytrailConfig->get("e1.$component.value.city"),           //Post office. Required
+      $paytrailConfig->get("e1.$component.value.country"),        //Country ISO-3166-1 code. Required
+      $paytrailConfig->get("e1.$component.value.telephone"),      // Telephone number. Optional
+      $paytrailConfig->get("e1.$component.value.mobile"),         // Mobile phone number. Optional
+      $paytrailConfig->get("e1.$component.value.companyName")     // Company name. Optional
     );
 
     // Payment creation
     $payment = new Verkkomaksut_Module_Rest_Payment_E1($orderNumber, $urlset, $contact);
     
     //Set optional description. This is only visible in Paytrail Merchant admin panel.
-    $description = $params['first_name']." "
-      .$params['last_name'].". "
-      .$params['item_name'].". "
-      .$params['amount']." €";
+    $description = $paytrailConfig->get("e1.$component.value.firstName")." "
+      .$paytrailConfig->get("e1.$component.value.lastName").". "
+      .$paytrailConfig->get("e1.$component.value.productTitle").". "
+      .$paytrailConfig->get("e1.$component.value.productPrice")." €";
     $payment->setDescription();
 
     // Adding one or more product rows to the payment
     $payment->addProduct(
-        $params['item_name'],               // product title. Required
-        "",                                 // product code. Optional
-        "1.00",                             // product quantity. Required
-        $params['amount'],                  // product price (/apiece). Required
-        "0.00",                             // Tax percentage (VAT). Required
-        "0.00",                             // Discount percentage, Optional
-        Verkkomaksut_Module_Rest_Product::TYPE_NORMAL	// Product type, Optional		
+      $paytrailConfig->get("e1.$component.value.productTitle"),               // product title. Required
+      $paytrailConfig->get("e1.$component.value.productCode"),                // product code. Optional
+      $paytrailConfig->get("e1.$component.value.productQuantity"),            // product quantity. Required
+      $paytrailConfig->get("e1.$component.value.productPrice"),               // product price (/apiece). Required
+      $paytrailConfig->get("e1.$component.value.productVat"),                 // Tax percentage (VAT). Required
+      $paytrailConfig->get("e1.$component.value.productDiscountPercentage"),  // Discount percentage, Optional
+      $paytrailConfig->get("e1.$component.value.productType")	              // Product type, Optional		
     );
     
     return $payment;
-  }
-  
-  private function getCountryISOCOde($countryId) {
-    $countryId = (int) $countryId;
-  
-    $sql = "
-      SELECT iso_code
-      FROM civicrm_country
-      WHERE id = $countryId
-    ";
-    
-    return CRM_Core_DAO::singleValueQuery($sql);
   }
 }
