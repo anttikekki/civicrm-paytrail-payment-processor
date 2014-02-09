@@ -11,7 +11,8 @@ This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
 
 #### Version history
 
-- [v1.1](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.1) Licence change
+- [v1.2](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.2) Added E1 API mode support and configuration support
+- [v1.1](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.1) Licence change to GNU Affero General Public License
 - [v1.0](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.0) Initial realease
 
 #### Information sent to Paytrail
