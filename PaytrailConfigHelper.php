@@ -6,6 +6,10 @@
 * Provides reasonable defaults to values not commonly in contribution or event form (e.g. tax, quantity).
 * Values and form fields can also be customized with configuration in civicrm_paytrail_payment_processor_config 
 * table.
+*
+* Default Paytrail API mode is E1.
+*
+* @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
 */
 class PaytrailConfigHelper {
 

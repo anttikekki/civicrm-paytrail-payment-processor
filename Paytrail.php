@@ -146,7 +146,7 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
       ""  // pending url is not in use
     );
 
-    // Create payment
+    // Create payment. Default Paytrail API mode is E1.
     if($paytrailConfig->get("apiMode") == PaytrailConfigHelper::API_MODE_S1) {
       $payment = &$this->createS1PaymentObject($params, $urlset, $component, $paytrailConfig);
     }
