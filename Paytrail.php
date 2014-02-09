@@ -13,21 +13,6 @@
 require_once 'Verkkomaksut_Module_Rest.php';
 require_once 'PaytrailConfigHelper.php';
 
-/**
-* Implements CiviCRM 'install' hook.
-*/
-function paytrail_civicrm_install() {
-  //Add table for configuration
-  $sql = "
-    CREATE TABLE IF NOT EXISTS civicrm_paytrail_payment_processor_config (
-      config_key varchar(255) NOT NULL,
-      config_value varchar(255) NOT NULL,
-      PRIMARY KEY (`config_key`)
-    ) ENGINE=InnoDB;
-  ";
-  CRM_Core_DAO::executeQuery($sql);
-}
-
 class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   /**
    * We only need one instance of this object. So we use the singleton
@@ -86,6 +71,12 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
   public function checkConfig( ) {
     $config = CRM_Core_Config::singleton();
     $error = array();
+    
+    //Check that config table exists
+    if(!$this->configTableExists()) {
+      $this->createConfigTable();
+    }
+    
     if (empty($this->_paymentProcessor['user_name'])) {
       $error[] = ts('The "Merchant ID" is not set in the Administer CiviCRM Payment Processor.');
     }
@@ -233,7 +224,7 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
       .$paytrailConfig->get("e1.$component.value.lastName").". "
       .$paytrailConfig->get("e1.$component.value.productTitle").". "
       .$paytrailConfig->get("e1.$component.value.productPrice")." €";
-    $payment->setDescription();
+    $payment->setDescription($description);
 
     // Adding one or more product rows to the payment
     $payment->addProduct(
@@ -247,5 +238,29 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
     );
     
     return $payment;
+  }
+  
+  /**
+  * Creates civicrm_paytrail_payment_processor_config table for configuration
+  */
+  private function createConfigTable() {
+    $sql = "
+      CREATE TABLE IF NOT EXISTS civicrm_paytrail_payment_processor_config (
+        config_key varchar(255) NOT NULL,
+        config_value varchar(255) NOT NULL,
+        PRIMARY KEY (`config_key`)
+      ) ENGINE=InnoDB;
+    ";
+    CRM_Core_DAO::executeQuery($sql);
+  }
+  
+  /**
+  * Checks if civicrm_paytrail_payment_processor_config table exists
+  */
+  private function configTableExists() {
+    $sql = "SHOW TABLES LIKE 'civicrm_paytrail_payment_processor_config'";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    
+    return $dao->fetch();
   }
 }
