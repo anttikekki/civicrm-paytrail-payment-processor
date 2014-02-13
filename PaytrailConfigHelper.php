@@ -31,6 +31,7 @@ class PaytrailConfigHelper {
   private $configDefaults = array(
     //Common config
     "apiMode" => "E1",
+    "embeddedPaymentButtons" => "true",
     
     //Contribute: parameter field names in Payment Processor params
     "e1.contribute.field.firstName" => "first_name",
@@ -108,10 +109,19 @@ class PaytrailConfigHelper {
   /**
   * Creates new helper. Loads all configurations from database on creation.
   *
+  * @param array|NULL $paymentProcessorParams Name value pair of form data passed to Payment processor
+  */
+  public function __construct($paymentProcessorParams = array()) {
+    $this->databaseConfig = $this->loadConfigurationsFromDatabase();
+    $this->paymentProcessorParams = $paymentProcessorParams;
+  }
+  
+  /**
+  * Set Payment processor params
+  *
   * @param array $paymentProcessorParams Name value pair of form data passed to Payment processor
   */
-  public function __construct($paymentProcessorParams) {
-    $this->databaseConfig = $this->loadConfigurationsFromDatabase();
+  public function setPaymentProcessorParams($paymentProcessorParams) {
     $this->paymentProcessorParams = $paymentProcessorParams;
   }
   
