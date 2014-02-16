@@ -46,7 +46,7 @@ function Paytrail_civicrm_managed(&$entities) {
 * Implementation of hook_civicrm_install
 */
 function Paytrail_civicrm_install() {
-  //Create civicrm_paytrail_payment_processor_config -table
+  //Create civicrm_paytrail_payment_processor_config -table for configuration data
   $sql = "
     CREATE TABLE IF NOT EXISTS civicrm_paytrail_payment_processor_config (
       config_key varchar(255) NOT NULL,
@@ -55,37 +55,92 @@ function Paytrail_civicrm_install() {
     ) ENGINE=InnoDB;
   ";
   CRM_Core_DAO::executeQuery($sql);
+  
+  //Create civicrm_paytrail_payment_processor_invoice_data -table for invoice data
+  $sql = "
+    CREATE TABLE IF NOT EXISTS civicrm_paytrail_payment_processor_invoice_data (
+      invoice_id varchar(255) NOT NULL,
+      component varchar(255) NOT NULL,
+      contact_id int(10),
+      contribution_id int(10),
+      contribution_financial_type_id int(10),
+      event_id int(10),
+      participant_id int(10),
+      membership_id int(10),
+      amount decimal(20,2),
+      qfKey varchar(255) NOT NULL,
+      PRIMARY KEY (`invoice_id`)
+    ) ENGINE=InnoDB;
+  ";
+  CRM_Core_DAO::executeQuery($sql);
 }
 
-function Paytrail_civicrm_buildForm( $formName, &$form ) {
+/**
+* Implements CiviCRM 'buildForm' hook.
+*
+* @param string $formName Name of current form.
+* @param CRM_Core_Form $form Current form.
+*/
+function Paytrail_civicrm_buildForm($formName, &$form) {
+  //Confirm Contribution
   if($form instanceof CRM_Contribute_Form_Contribution_Confirm) {
     $paymentHelper = new PaytrailPaymentHelper();
-    if($paymentHelper->getPaytrailConfig()->get("embeddedPaymentButtons") !== 'true') {
+    if(!$paymentHelper->isEmbeddedButtonsEnabled()) {
       return;
     }
   
+    //Get form params to get customer contact info and product info
     $component = "contribute";
-    
     $params = $form->get("params");
-    $params['contactID'] = $form->_contactID;
     $params['item_name'] = $form->_values['title'];
     
     $paymentHelper->embeddPaymentButtons($params, $component);
   }
+  //Confirm Event participation
   else if($form instanceof CRM_Event_Form_Registration_Confirm) {
     $paymentHelper = new PaytrailPaymentHelper();
-    if($paymentHelper->getPaytrailConfig()->get("embeddedPaymentButtons") !== 'true') {
+    if(!$paymentHelper->isEmbeddedButtonsEnabled()) {
       return;
     }
     
+    //Get form params to get customer contact info and product info
     $component = "event";
-  
-    $params = $form->get("params")[0];
-    $params['eventID'] = $form->_eventId;
-    $params['contactID'] = $params['contact_id'];
+    $formParamsArray = $form->get("params");
+    $params = $formParamsArray[0];
     $params['item_name'] = $form->_values['event']['title'];
     
     $paymentHelper->embeddPaymentButtons($params, $component);
+  }
+}
+
+/**
+* Implements CiviCRM 'alterContent' hook.
+*
+* @param string $content - previously generated content
+* @param string $context - context of content - page or form
+* @param string $tplName - the file name of the tpl
+* @param object $object - a reference to the page or form object
+*/
+function Paytrail_civicrm_alterContent(&$content, $context, $tplName, &$object) {
+  //Confirm Contribution
+  if($object instanceof CRM_Contribute_Form_Contribution_Confirm) {
+    $paymentHelper = new PaytrailPaymentHelper();
+    if(!$paymentHelper->isEmbeddedButtonsEnabled()) {
+      return;
+    }
+  
+    //Hide original form. Do not remove it because we want to submit it
+    $content = str_replace('id="Confirm"' , 'id="Confirm" style="display: none;"' , $content);
+  }
+  //Confirm Event participation
+  else if($object instanceof CRM_Event_Form_Registration_Confirm) {
+    $paymentHelper = new PaytrailPaymentHelper();
+    if(!$paymentHelper->isEmbeddedButtonsEnabled()) {
+      return;
+    }
+  
+    //Hide original form. Do not remove it because we want to submit it
+    $content = str_replace('id="Confirm"' , 'id="Confirm" style="display: none;"' , $content);
   }
 }
 
@@ -184,15 +239,25 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
    * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
    */
   public function doTransferCheckout(&$params, $component) {
-    if(isset($_GET["paytrailEmbeddedButtonsRedirectURL"])) {
-      $paytrailDirectURL = urldecode($_GET["paytrailEmbeddedButtonsRedirectURL"]);
-      CRM_Utils_System::redirect($paytrailDirectURL);
+    $paymentHelper = new PaytrailPaymentHelper();
+    
+    //Save payment info for PaytrailIPN.php to retrieve
+    $paymentHelper->insertInvoiceInfo($params, $component);
+    
+    /*
+    * Don't process payment (do full page redirect to Paytrail) if embedded payment buttons are enabled. 
+    * Get URL parameter that holds direct link to bank page and redirect to there.
+    */
+    if($paymentHelper->isEmbeddedButtonsEnabled()) {
+      if(isset($_GET["paytrailEmbeddedButtonsRedirectURL"])) {
+        $paytrailDirectURL = urldecode($_GET["paytrailEmbeddedButtonsRedirectURL"]);
+        CRM_Utils_System::redirect($paytrailDirectURL);
+      }
     }
   
     $merchantId = $this->_paymentProcessor['user_name'];
     $merchantSecret = $this->_paymentProcessor['password'];
     
-    $paymentHelper = new PaytrailPaymentHelper();
     $result = $paymentHelper->processPayment($params, $component, $merchantId, $merchantSecret);
     
     // Redirect to URL received from REST request

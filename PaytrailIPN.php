@@ -251,16 +251,19 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     require_once 'CRM/Utils/Request.php';
     $config = CRM_Core_Config::singleton();
 
-    //Get payment info from GET parameters. These are set to return URL before payment.
-    $privateData['invoiceID'] = 		  $_GET["ORDER_NUMBER"];
-    $privateData['contactID'] = 		  (isset($_GET["contactID"])) ? $_GET["contactID"] : '';
-    $privateData['contributionID'] = 	(isset($_GET["contributionID"])) ? $_GET["contributionID"] : '';
-    $privateData['contributionTypeID'] = (isset($_GET["contributionTypeID"])) ? $_GET["contributionTypeID"] : '';
-    $privateData['eventID'] = 			  (isset($_GET["eventID"])) ? $_GET["eventID"] : '';
-    $privateData['participantID'] = 	(isset($_GET["participantID"])) ? $_GET["participantID"] : '';
-    $privateData['membershipID'] = 		(isset($_GET["membershipID"])) ? $_GET["membershipID"] : '';
-    $privateData['amount'] = 		      (isset($_GET["amount"])) ? $_GET["amount"] : '';
-    $privateData['qfKey'] =           $_GET["qfKey"];
+    //Get payment info from civicrm_paytrail_payment_processor_invoice_data table. These are saved to table before payment.
+    $invoiceID = $_GET["ORDER_NUMBER"];
+    $invoiceData = self::readInvoiceData($invoiceID);
+    
+    $privateData['invoiceID'] = 		   $invoiceData['invoice_id'];
+    $privateData['contactID'] = 		   $invoiceData['contact_id'];
+    $privateData['contributionID'] = 	 $invoiceData['contribution_id'];
+    $privateData['contributionTypeID'] =  $invoiceData['contribution_financial_type_id'];
+    $privateData['eventID'] = 			   $invoiceData['event_id'];
+    $privateData['participantID'] = 	 $invoiceData['participant_id'];
+    $privateData['membershipID'] = 		 $invoiceData['membership_id'];
+    $privateData['amount'] = 		       $invoiceData['amount'];
+    $privateData['qfKey'] =            $invoiceData['qfKey'];
 
     list($mode, $component, $paymentProcessorID, $duplicateTransaction) = self::getContext($privateData);
     $mode = $mode ? 'test' : 'live';
@@ -306,5 +309,41 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       }
     }
     CRM_Utils_System::redirect( $finalURL );
+  }
+  
+  /**
+  * Get payment invoice data from civicrm_paytrail_payment_processor_invoice_data table. 
+  * Invoice data is stored there before payment URL redirect.
+  *
+  * @return array Payment data
+  */
+  private static function readInvoiceData($invoiceID) {
+    $sql = "
+      SELECT *
+      FROM civicrm_paytrail_payment_processor_invoice_data
+      WHERE invoice_id = %1
+    ";
+    
+    $sqlParams = array(
+      1  => array($invoiceID, 'String')
+    );
+ 
+    $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+    
+    $data = array();
+    while ($dao->fetch()) {
+      $data['invoice_id'] = $dao->invoice_id;
+      $data['component'] = $dao->component;
+      $data['contact_id'] = $dao->contact_id;
+      $data['contribution_id'] = $dao->contribution_id;
+      $data['contribution_financial_type_id'] = $dao->contribution_financial_type_id;
+      $data['event_id'] = $dao->event_id;
+      $data['participant_id'] = $dao->participant_id;
+      $data['membership_id'] = $dao->membership_id;
+      $data['amount'] = $dao->amount;
+      $data['qfKey'] = $dao->qfKey;
+    }
+    
+    return $data;
   }
 }

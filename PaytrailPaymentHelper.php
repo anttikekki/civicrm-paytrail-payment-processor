@@ -1,5 +1,8 @@
 <?php
 
+/**
+* Paytrail payment helper to handle embedded buttons mode and full page mode
+*/
 class PaytrailPaymentHelper {
   
   /**
@@ -9,17 +12,41 @@ class PaytrailPaymentHelper {
   */
   private $paytrailConfig;
 
+  /**
+  * Create ne helper
+  */
   public function __construct() {
     $this->paytrailConfig = new PaytrailConfigHelper();
   }
   
+  /**
+  * Return config instance
+  *
+  * @return PaytrailConfigHelper
+  */
   public function &getPaytrailConfig() {
     return $this->paytrailConfig;
   }
+  
+  /**
+  * Is embedded payment buttons mode active?
+  * 
+  * @return boolean
+  */
+  public function isEmbeddedButtonsEnabled() {
+    return $this->paytrailConfig->get("embeddedPaymentButtons") === 'true';
+  }
 
+  /**
+  * Add embedded payment buttons to page. This only works in confirmation page.
+  *
+  * @param array $params name value pair of Payment processor data
+  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute or event)
+  */
   public function embeddPaymentButtons(&$params, $component) {
     $this->paytrailConfig->setPaymentProcessorParams($params);
   
+    //Load payment processor
     $paymentProcessorID = $params['payment_processor'];
     $processorDAO = new CRM_Financial_DAO_PaymentProcessor();
     $processorDAO->get("id", $paymentProcessorID);
@@ -33,6 +60,15 @@ class PaytrailPaymentHelper {
     CRM_Core_Resources::singleton()->addSetting(array('paytrail' => array('token' => $result->getToken())));
   }
 
+  /**
+  * Process payment by sending payment info to Paytrail with REST API.
+  *
+  * @param array $params name value pair of Payment processor data
+  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute or event)
+  * @param string $merchantId Paytrail merchant id
+  * @param string $merchantSecret Paytrail merchant secret
+  * @return Verkkomaksut_Module_Rest_Result REST call result with redirect URL and token
+  */
   public function processPayment(&$params, $component, $merchantId, $merchantSecret) {
     $this->paytrailConfig->setPaymentProcessorParams($params);
   
@@ -56,26 +92,17 @@ class PaytrailPaymentHelper {
     return $result;
   }
   
-  private function createNotifyURL(&$params) {
-    // Return URL from Paytrail
-    $notifyURL = CRM_Core_Config::singleton()->userFrameworkResourceURL . "extern/PaytrailNotify.php";
-    
-    //Add CiviCRM data to return URL
-    $notifyURL .= "?qfKey=" .             $params['qfKey'];
-    $notifyURL .= "&contactID=" .         ((isset($params['contactID'])) ? $params['contactID'] : '');
-    $notifyURL .= "&contributionID=" .    ((isset($params['contributionID'])) ? $params['contributionID'] : '');
-    $notifyURL .= "&contributionTypeID=" . ((isset($params['contributionTypeID'])) ? $params['contributionTypeID'] : ''); //Financial type
-    $notifyURL .= "&eventID=" .           ((isset($params['eventID'])) ? $params['eventID'] : '');
-    $notifyURL .= "&participantID=" .     ((isset($params['participantID'])) ? $params['participantID'] : '');
-    $notifyURL .= "&membershipID=" .      ((isset($params['membershipID'])) ? $params['membershipID'] : '');
-    $notifyURL .= "&amount=" .            ((isset($params['amount'])) ? $params['amount'] : '');
-    
-    return $notifyURL;
-  }
-  
+  /**
+  * Create Paytrail payment object for S1 or E1 API version.
+  *
+  * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
+  * @param array $params name value pair of form data
+  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute or event)
+  * @return Verkkomaksut_Module_Rest_Payment Paytrail payment object
+  */
   private function &createPaymentObject(&$params, $component) {
     // Return URL from Paytrail to extern directory PaytrailNotify.php
-    $notifyURL = $this->createNotifyURL($params);
+    $notifyURL = CRM_Core_Config::singleton()->userFrameworkResourceURL . "extern/PaytrailNotify.php";
   
     $urlset = new Verkkomaksut_Module_Rest_Urlset(
       $notifyURL, // success
@@ -99,6 +126,7 @@ class PaytrailPaymentHelper {
   * @param array $params name value pair of form data
   * @param Verkkomaksut_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
+  * @return Verkkomaksut_Module_Rest_Payment Paytrail payment object
   */
   private function &createS1PaymentObject(&$params, $urlset, $component) {
     $orderNumber = $params['invoiceID'];
@@ -126,6 +154,7 @@ class PaytrailPaymentHelper {
   * @param array $params name value pair of form data
   * @param Verkkomaksut_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
+  * @return Verkkomaksut_Module_Rest_Payment Paytrail payment object
   */
   private function &createE1PaymentObject(&$params, $urlset, $component) {
     $orderNumber = $params['invoiceID'];
@@ -167,5 +196,45 @@ class PaytrailPaymentHelper {
     );
     
     return $payment;
+  }
+  
+  /**
+  * Insert new row to civicrm_paytrail_payment_processor_invoice_data table that contains 
+  * all invoice info that PaytrailIPN.php requires.
+  *
+  * @param array $params name value pair of Payment processor data
+  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
+  */
+  public function insertInvoiceInfo(&$params, $component) {
+    $sql = "
+      INSERT INTO civicrm_paytrail_payment_processor_invoice_data (
+        invoice_id, 
+        component, 
+        contact_id,
+        contribution_id,
+        contribution_financial_type_id,
+        event_id,
+        participant_id,
+        membership_id,
+        amount,
+        qfKey
+      )
+      VALUES (%1, %2 , %3 , %4 , %5 , %6 , %7 , %8 , %9 , %10)
+    ";
+    
+    $sqlParams = array(
+      1  => array($params['invoiceID'],                                         'String'),
+      2  => array($component,                                                   'String'),
+      3  => array((int) CRM_Utils_Array::value('contactID', $params),           'Integer'),
+      4  => array((int) CRM_Utils_Array::value('contributionID', $params),      'Integer'),
+      5  => array((int) CRM_Utils_Array::value('contributionTypeID', $params),  'Integer'),
+      6  => array((int) CRM_Utils_Array::value('eventID', $params),             'Integer'),
+      7  => array((int) CRM_Utils_Array::value('participantID', $params),       'Integer'),
+      8  => array((int) CRM_Utils_Array::value('membershipID', $params),        'Integer'),
+      9  => array((float) CRM_Utils_Array::value('amount', $params),            'Float'),
+      10  => array($params['qfKey'],                                            'String')
+    );
+ 
+    CRM_Core_DAO::executeQuery($sql, $sqlParams);
   }
 }
