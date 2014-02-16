@@ -1,11 +1,7 @@
 civicrm-paytrail-payment-processor
 ==================================
 
-[CiviCRM](https://civicrm.org/) Payment Processor for [Paytrail](http://paytrail.com) (formerly Suomen Verkkomaksut). 
-
-It uses Paytrail [REST API](http://docs.paytrail.com/en/ch04s03.html) and includes Paytrail REST [PHP Module file](http://docs.paytrail.com/files/Verkkomaksut_Module_Rest.php.zip). Default Paytrail API mode is E1.
-
-This payment processor only supports type 4 (notify) payment type (more info of all the types from CiviCRM [wiki](http://wiki.civicrm.org/confluence/display/CRMDOC/Create+a+Payment-Processor+Extension)). Browser is redirected to Paytrail site for payment and then redirected back to CiviCRM. No payment info is gathered in CiviCRM. CiviCRM receives notification after succesfull or canceled payment.
+[CiviCRM](https://civicrm.org/) Payment Processor for [Paytrail](http://paytrail.com) (formerly Suomen Verkkomaksut). It uses Paytrail [REST API](http://docs.paytrail.com/en/ch04s03.html) and includes Paytrail REST [PHP Module file](http://docs.paytrail.com/files/Verkkomaksut_Module_Rest.php.zip). Default Paytrail API mode is E1. This payment processor support embedded payment buttons /default mode) and full page redirect to Paytrail payment selection page.
 
 This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
 
@@ -55,6 +51,11 @@ CiviCRM contribution invoice id is sent to Paytrail as transaction identificatio
 #### Licence
 GNU Affero General Public License
 
+#### Embedded payment buttons
+Embedded payment buttons require product price and unique invoice id (in S1 mode. A lot more info is required in E1 mode). This means that embedded buttons can not be shown in main Contribution or Event page. Buttons are embedded to confirmation page because of this limitation. Confirmation page has to be enabled in Contribution page settings. All other content in confirmation page is removed.
+
+Embedded buttons are enabled by default. Full page redirect to Paytrail payment selection page can be activated in configuration.
+
 #### Configuration
 Payment processor can be configured and customized by adding rows to `civicrm_paytrail_payment_processor_config` table. This table has two columns: `config_key` and `config_value`. 
 
@@ -74,6 +75,7 @@ This priority order means that database configuration always overwrites other va
 | Key | Default | Description  |
 | ------------- |-------------| -----|
 | `apiMode` | `E1` | API mode. `E1` or `S1` |
+| `embeddedPaymentButtons` | `true` | Enable embedded payment buttons? `true` for enable, any other value or no row at all for `false` |
 
 
 ##### Contribution page payment default values
