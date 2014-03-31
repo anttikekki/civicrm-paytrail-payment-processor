@@ -6,6 +6,7 @@ civicrm-paytrail-payment-processor
 This payment processor is only tested with Dupal 7 and CiviCRM 4.4.
 
 #### Version history
+- [v1.4](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.4) Added configurations settings page
 - [v1.3](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.3) Added embedded payment buttons support
 - [v1.2](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.2) Added E1 API mode support and configuration support
 - [v1.1](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.1) Licence change to GNU Affero General Public License
@@ -46,7 +47,9 @@ CiviCRM contribution invoice id is sent to Paytrail as transaction identificatio
 
 2. Copy `PaytrailIPN.php`, `PaytrailNotify.php` and `Verkkomaksut_Module_Rest.php` to CiviCRM `extern` directory. Extern directory is in `[JOOMLA_DIRECTORY]/administrator/components/com_civicrm/civicrm/extern` in Joomla and `[DRUPAL_DIRECTORY]/sites/all/modules/civicrm/extern` in Drupal. There must also be copy of `Verkkomaksut_Module_Rest.php` in `com.github.anttikekki.payment.paytrail` (yep, same file in two places).
 
-3. Configure payment processor in _Administer->Customize->Manage CiviCRM Extensions_. You need to insert `Merchant id` and `Merchant secret` information that Paytrail has provided. URL field can be left blank. To test payment processor you can use test id from [Paytrail docs](http://docs.paytrail.com/en/ch03.html).
+3. Configure payment processor CiviCRM common settings in _Administer->System Settings->Payment processors_. You need to insert `Merchant id` and `Merchant secret` information that Paytrail has provided. URL field can be left blank. To test payment processor you can use test id from [Paytrail docs](http://docs.paytrail.com/en/ch03.html).
+
+4. Configure Paytrail spesific settings in _Administer->Paytrail->Settings_
 
 #### Licence
 GNU Affero General Public License
@@ -57,9 +60,7 @@ Embedded payment buttons require product price and unique invoice id (in S1 mode
 Embedded buttons are enabled by default. Full page redirect to Paytrail payment selection page can be activated in configuration.
 
 #### Configuration
-Payment processor can be configured and customized by adding rows to `civicrm_paytrail_payment_processor_config` table. This table has two columns: `config_key` and `config_value`. 
-
-Payment processor has some default values for some options. These defaults are set in [PaytrailConfigHelper.php](https://github.com/anttikekki/civicrm-paytrail-payment-processor/blob/master/PaytrailConfigHelper.php) to `$configDefaults` variable. These defaults are listed in tables below.
+Payment processor can be configured and customized by adding rows to `civicrm_paytrail_payment_processor_config` table in settings page at _Administer->Paytrail->Settings_. Payment processor default configurations are visible in settings page. 
 
 Configuration allows to customize data sent to Paytrail in [E1](http://docs.paytrail.com/en/ch05s02.html#idp140474540882720) API mode. Default values for all payments are handy if all required values are not in Contribution page form or Event page form.
 
