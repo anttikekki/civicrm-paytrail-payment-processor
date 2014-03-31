@@ -145,6 +145,106 @@ function Paytrail_civicrm_alterContent(&$content, $context, $tplName, &$object) 
 }
 
 /**
+* Implemets CiviCRM 'alterTemplateFile' hook.
+*
+* @param String $formName Name of current form.
+* @param CRM_Core_Form $form Current form.
+* @param CRM_Core_Form $context Page or form.
+* @param String $tplName The file name of the tpl - alter this to alter the file in use.
+*/
+function Paytrail_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName) {
+  //Extension admin page
+  if($form instanceof Admin_Page_PaytrailAdmin) {
+    $res = CRM_Core_Resources::singleton();
+    $res->addScriptFile('com.github.anttikekki.payment.paytrail', 'Admin/Page/admin.js');
+    
+    //Add CMS neutral ajax callback URLs
+    $res->addSetting(array('paytrail' => 
+      array(
+        'getInitDataAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getInitData'),
+        'getConfigAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getConfig'),
+        'saveConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/saveConfigRow'),
+        'deleteConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/deleteConfigRow')
+      )
+    ));
+  }
+}
+
+/**
+* Implemets CiviCRM 'config' hook.
+*
+* @param object $config the config object
+*/
+function Paytrail_civicrm_config(&$config) {
+  $template =& CRM_Core_Smarty::singleton();
+  $extensionDir = dirname(__FILE__);
+ 
+  // Add extension template directory to the Smarty templates path
+  if (is_array($template->template_dir)) {
+    array_unshift($template->template_dir, $extensionDir);
+  }
+  else {
+    $template->template_dir = array($extensionDir, $template->template_dir);
+  }
+
+  //Add extension folder to included folders list so that AJAX.php is found whe accessin it from URL
+  $include_path = $extensionDir . DIRECTORY_SEPARATOR . PATH_SEPARATOR . get_include_path();
+  set_include_path($include_path);
+}
+
+/**
+* Implemets CiviCRM 'xmlMenu' hook.
+*
+* @param array $files the array for files used to build the menu. You can append or delete entries from this file. 
+* You can also override menu items defined by CiviCRM Core.
+*/
+function Paytrail_civicrm_xmlMenu( &$files ) {
+  //Add Ajax and Admin page URLs to civicrm_menu table so that they work
+  $files[] = dirname(__FILE__)."/menu.xml";
+}
+
+/**
+* Implemets CiviCRM 'navigationMenu' hook.
+*
+* @param array $params the navigation menu array
+*/
+function Paytrail_civicrm_navigationMenu(&$params) {
+    //Find last index of Administer menu children
+    $maxKey = max(array_keys($params[108]['child']));
+    
+    //Add extension menu as Admin menu last children
+    $params[108]['child'][$maxKey+1] = array(
+       'attributes' => array (
+          'label'      => 'Paytrail',
+          'name'       => 'Paytrail',
+          'url'        => null,
+          'permission' => null,
+          'operator'   => null,
+          'separator'  => null,
+          'parentID'   => null,
+          'navID'      => $maxKey+1,
+          'active'     => 1
+        ),
+       'child' =>  array (
+          '1' => array (
+            'attributes' => array (
+               'label'      => 'Settings',
+               'name'       => 'Settings',
+               'url'        => 'civicrm/paytrail/settings',
+               'permission' => 'administer CiviCRM',
+               'operator'   => null,
+               'separator'  => 1,
+               'parentID'   => $maxKey+1,
+               'navID'      => 1,
+               'active'     => 1
+                ),
+            'child' => null
+          )
+        )
+    );
+}
+
+/**
 * Payment processor implementation
 */
 class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {

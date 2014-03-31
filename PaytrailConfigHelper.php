@@ -117,6 +117,24 @@ class PaytrailConfigHelper {
   }
   
   /**
+  * Returns all database config rows.
+  *
+  * @return array Array where key is config key and value is config value
+  */
+  public function getAllDatabaseConfigs() {
+    return $this->databaseConfig;
+  }
+  
+  /**
+  * Returns default configs.
+  *
+  * @return array Array where key is config key and value is config value
+  */
+  public function getDefaultValues() {
+    return $this->configDefaults;
+  }
+  
+  /**
   * Set Payment processor params
   *
   * @param array $paymentProcessorParams Name value pair of form data passed to Payment processor
