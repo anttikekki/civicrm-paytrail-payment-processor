@@ -78,12 +78,12 @@ cj(function ($) {
     html += '<tbody>';
     
     html += '<tr>';
-    html += '<td class="label"><label for="config_key">Relationship Type<span class="crm-marker" title="This field is required.">*</span></label></td>';
+    html += '<td class="label"><label for="config_key">Config Key<span class="crm-marker" title="This field is required.">*</span></label></td>';
     html += '<td id="config_key"></td>';
     html += '</tr>';
     
     html += '<tr>';
-    html += '<td class="label"><label for="config_value">Display order</label></td>';
+    html += '<td class="label"><label for="config_value">Config Value</label></td>';
     html += '<td><input id="config_value" class="form-text" name="config_value" size="40" maxlength="255"/></td>';
     html += '</tr>';
     
