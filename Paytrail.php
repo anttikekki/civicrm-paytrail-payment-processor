@@ -161,10 +161,10 @@ function Paytrail_civicrm_alterTemplateFile($formName, &$form, $context, &$tplNa
     //Add CMS neutral ajax callback URLs
     $res->addSetting(array('paytrail' => 
       array(
-        'getInitDataAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getInitData'),
-        'getConfigAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getConfig'),
-        'saveConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/saveConfigRow'),
-        'deleteConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/deleteConfigRow')
+        'getInitDataAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getInitData', NULL, FALSE, NULL, FALSE),
+        'getConfigAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getConfig', NULL, FALSE, NULL, FALSE),
+        'saveConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/saveConfigRow', NULL, FALSE, NULL, FALSE),
+        'deleteConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/deleteConfigRow', NULL, FALSE, NULL, FALSE)
       )
     ));
   }
