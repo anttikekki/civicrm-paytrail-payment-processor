@@ -8,7 +8,7 @@ class PaytrailPaymentHelper {
   /**
   * Paytrail config helper instance
   *
-  * @var PaytrailConfigHelper
+  * @var CRM_Paytrail_ConfigHelper
   */
   private $paytrailConfig;
 
@@ -16,13 +16,13 @@ class PaytrailPaymentHelper {
   * Create ne helper
   */
   public function __construct() {
-    $this->paytrailConfig = new PaytrailConfigHelper();
+    $this->paytrailConfig = new CRM_Paytrail_ConfigHelper();
   }
   
   /**
   * Return config instance
   *
-  * @return PaytrailConfigHelper
+  * @return CRM_Paytrail_ConfigHelper
   */
   public function &getPaytrailConfig() {
     return $this->paytrailConfig;
@@ -111,7 +111,7 @@ class PaytrailPaymentHelper {
       ""  // pending url is not in use
     );
   
-    if($this->paytrailConfig->get("apiMode") == PaytrailConfigHelper::API_MODE_S1) {
+    if($this->paytrailConfig->get("apiMode") == CRM_Paytrail_ConfigHelper::API_MODE_S1) {
       return $this->createS1PaymentObject($params, $urlset, $component);
     }
     else {
@@ -160,7 +160,7 @@ class PaytrailPaymentHelper {
     $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
     
-    // An object is created to model payer’s data
+    // An object is created to model payerâ€™s data
     $contact = new Verkkomaksut_Module_Rest_Contact(
       $this->paytrailConfig->get("e1.$component.value.firstName"),      //First name. Required
       $this->paytrailConfig->get("e1.$component.value.lastName"),       //Last name. Required
@@ -181,7 +181,7 @@ class PaytrailPaymentHelper {
     $description = $this->paytrailConfig->get("e1.$component.value.firstName")." "
       .$this->paytrailConfig->get("e1.$component.value.lastName").". "
       .$this->paytrailConfig->get("e1.$component.value.productTitle").". "
-      .$this->paytrailConfig->get("e1.$component.value.productPrice")." €";
+      .$this->paytrailConfig->get("e1.$component.value.productPrice")." â‚¬";
     $payment->setDescription($description);
 
     // Adding one or more product rows to the payment

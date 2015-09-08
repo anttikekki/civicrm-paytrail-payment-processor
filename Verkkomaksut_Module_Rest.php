@@ -615,7 +615,9 @@ class Verkkomaksut_Module_Rest
 		
 		// Create data array
 		$url = self::SERVICE_URL."/api-payment/create";	
-		
+
+
+
 		$result = $this->_postJsonRequest($url, json_encode($data));
 		
 		if($result->httpCode != 201) {

@@ -11,7 +11,7 @@
 *
 * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
 */
-class PaytrailConfigHelper {
+class CRM_Paytrail_ConfigHelper {
 
   /**
   * API mode name for S1.
