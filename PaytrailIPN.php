@@ -125,7 +125,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       /* Since trxn_id hasn't got any use here,
        * lets make use of it by passing the eventID/membershipTypeID to next level.
        * And change trxn_id to the payment processor reference before finishing db update */
-      if ( $ids['event'] ) {
+      if ( !empty($ids['event'])) {
         $contribution->trxn_id =
           $ids['event']       . CRM_Core_DAO::VALUE_SEPARATOR .
           $ids['participant'] ;
@@ -283,32 +283,26 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       CRM_Core_Error::debug_log_message("Failure: Paytrail notify is incorrect");
       $success = false;
     }
- 
+    $finalUrlAction = ($component == 'event') ? 'civicrm/event/register' : 'civicrm/contribute/transact';
+    $finalUrlParams = array(
+        'qfKey' => $privateData['qfKey']
+    );
     // Redirect our users to the correct url.
-    if ($success == false) {
-      //Failure
-      if ($component == "event") {
-        $finalURL = CRM_Utils_System::url('civicrm/event/confirm', "reset=1&cc=fail&participantId={$privateData['participantID']}", false, null, false);
-      } elseif ($component == "contribute") {
-        $finalURL = CRM_Utils_System::url('civicrm/contribute/transact', "_qf_Main_display=1&cancel=1&qfKey={$privateData['qfKey']}", false, null, false);
-      }
-    } else { 
+    if ($success) {
       // Success. Process the transaction.
       if ($duplicateTransaction == 0) {
-        $ipn=& self::singleton($mode, $component, $paymentProcessor);
+        $ipn = self::singleton($mode, $component, $paymentProcessor);
         $amount = (float) $privateData['amount'];
         $transactionId = $_GET["ORDER_NUMBER"];
         $ipn->newOrderNotify($success, $privateData, $component, $amount, $transactionId);
       }
-      
-      if ($component == "event") {
-        $finalURL = CRM_Utils_System::url('civicrm/event/register', "_qf_ThankYou_display=1&qfKey={$privateData['qfKey']}", false, null, false);
-      }
-      elseif ($component == "contribute") {
-        $finalURL = CRM_Utils_System::url('civicrm/contribute/transact', "_qf_ThankYou_display=1&qfKey={$privateData['qfKey']}", false, null, false);
-      }
+      $finalUrlParams['_qf_ThankYou_display'] = 1;
+
+    } else {
+      $finalUrlParams[($component == 'event') ? '_qf_Register_display'   : '_qf_Main_display'] = 1;
+      $finalUrlParams['cancel'] = 1;
     }
-    CRM_Utils_System::redirect( $finalURL );
+    CRM_Utils_System::redirect(CRM_Utils_System::url($finalUrlAction, $finalUrlParams, true, null, false, true));
   }
   
   /**
