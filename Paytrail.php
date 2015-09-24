@@ -68,11 +68,14 @@ function Paytrail_civicrm_install() {
       membership_id int(10),
       amount decimal(20,2),
       qfKey varchar(255) NOT NULL,
+      contributionPageCmsUrl TEXT NOT NULL,
       PRIMARY KEY (`invoice_id`)
     ) ENGINE=InnoDB;
   ";
   CRM_Core_DAO::executeQuery($sql);
 }
+
+// alter table civicrm_paytrail_payment_processor_invoice_data add column contributionPageCmsUrl TEXT NOT NULL; (for upgrade)
 
 /**
 * Implements CiviCRM 'buildForm' hook.
@@ -344,9 +347,14 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
    * @param array $params name value pair of form data
    * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
    */
-  public function doTransferCheckout(&$params, $component) {
-    $paymentHelper = new PaytrailPaymentHelper();
-    
+    public function doTransferCheckout(&$params, $component) {
+      $paymentHelper = new PaytrailPaymentHelper();
+
+      // For now works only with WordPress
+      if (function_exists('get_permalink') && $contributionPageCmsUrl = get_permalink()) {
+        $params['contributionPageCmsUrl'] = $contributionPageCmsUrl;
+      }
+
     //Save payment info for PaytrailIPN.php to retrieve
     $paymentHelper->insertInvoiceInfo($params, $component);
     
