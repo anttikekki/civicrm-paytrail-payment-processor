@@ -217,9 +217,10 @@ class PaytrailPaymentHelper {
         participant_id,
         membership_id,
         amount,
-        qfKey
+        qfKey,
+        contributionPageCmsUrl
       )
-      VALUES (%1, %2 , %3 , %4 , %5 , %6 , %7 , %8 , %9 , %10)
+      VALUES (%1, %2 , %3 , %4 , %5 , %6 , %7 , %8 , %9 , %10, %11)
     ";
     
     $sqlParams = array(
@@ -232,7 +233,8 @@ class PaytrailPaymentHelper {
       7  => array((int) CRM_Utils_Array::value('participantID', $params),       'Integer'),
       8  => array((int) CRM_Utils_Array::value('membershipID', $params),        'Integer'),
       9  => array((float) CRM_Utils_Array::value('amount', $params),            'Float'),
-      10  => array($params['qfKey'],                                            'String')
+      10  => array($params['qfKey'],                                            'String'),
+      11  => array($params['contributionPageCmsUrl'],                           'String')
     );
  
     CRM_Core_DAO::executeQuery($sql, $sqlParams);

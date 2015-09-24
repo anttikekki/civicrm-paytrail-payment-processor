@@ -254,7 +254,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     //Get payment info from civicrm_paytrail_payment_processor_invoice_data table. These are saved to table before payment.
     $invoiceID = $_GET["ORDER_NUMBER"];
     $invoiceData = self::readInvoiceData($invoiceID);
-    
+    $contributionPageCmsUrl = $invoiceData['contributionPageCmsUrl'] ?: '';
     $privateData['invoiceID'] = 		   $invoiceData['invoice_id'];
     $privateData['contactID'] = 		   $invoiceData['contact_id'];
     $privateData['contributionID'] = 	 $invoiceData['contribution_id'];
@@ -302,7 +302,18 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       $finalUrlParams[($component == 'event') ? '_qf_Register_display'   : '_qf_Main_display'] = 1;
       $finalUrlParams['cancel'] = 1;
     }
-    CRM_Utils_System::redirect(CRM_Utils_System::url($finalUrlAction, $finalUrlParams, true, null, false, true));
+    if ($contributionPageCmsUrl) {
+      $queryParams = array_merge(array(
+        'page' => 'CiviCRM',
+        'q' => $finalUrlAction,
+      ), $finalUrlParams);
+      $glue = strpos($contributionPageCmsUrl, '?' === FALSE) ? '?' : '&';
+      $finalUrl = $contributionPageCmsUrl . $glue . http_build_query($queryParams, null, '&');
+      CRM_Utils_System::redirect($finalUrl);
+    }
+    else {
+      CRM_Utils_System::redirect(CRM_Utils_System::url($finalUrlAction, $finalUrlParams, true, null, false, true));
+    }
   }
   
   /**
@@ -335,6 +346,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
       $data['participant_id'] = $dao->participant_id;
       $data['membership_id'] = $dao->membership_id;
       $data['amount'] = $dao->amount;
+      $data['contributionPageCmsUrl'] = $dao->contributionPageCmsUrl;
       $data['qfKey'] = $dao->qfKey;
     }
     
