@@ -32,6 +32,7 @@ class CRM_Paytrail_ConfigHelper {
     //Common config
     "apiMode" => "E1",
     "embeddedPaymentButtons" => "true",
+    "locale" => "fi_FI",
     
     //Contribute: parameter field names in Payment Processor params
     "e1.contribute.field.firstName" => "first_name",

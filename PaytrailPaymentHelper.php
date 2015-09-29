@@ -78,7 +78,7 @@ class PaytrailPaymentHelper {
 
     // Create payment. Default Paytrail API mode is E1.
     $payment = &$this->createPaymentObject($params, $component);
-
+    $payment->setLocale($this->paytrailConfig->get('locale'));
     // Send request to https://payment.verkkomaksut.fi with Merchant ID and Merchant secret
     $module = new Verkkomaksut_Module_Rest($merchantId, $merchantSecret);
     try {
