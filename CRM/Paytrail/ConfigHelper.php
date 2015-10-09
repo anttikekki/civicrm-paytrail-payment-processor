@@ -11,7 +11,7 @@
 *
 * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
 */
-class PaytrailConfigHelper {
+class CRM_Paytrail_ConfigHelper {
 
   /**
   * API mode name for S1.
@@ -32,6 +32,7 @@ class PaytrailConfigHelper {
     //Common config
     "apiMode" => "E1",
     "embeddedPaymentButtons" => "true",
+    "locale" => "fi_FI",
     
     //Contribute: parameter field names in Payment Processor params
     "e1.contribute.field.firstName" => "first_name",

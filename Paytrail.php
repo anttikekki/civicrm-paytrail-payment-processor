@@ -11,7 +11,6 @@
  */
 
 require_once 'Verkkomaksut_Module_Rest.php';
-require_once 'PaytrailConfigHelper.php';
 require_once 'PaytrailPaymentHelper.php';
 
 /**
@@ -69,11 +68,14 @@ function Paytrail_civicrm_install() {
       membership_id int(10),
       amount decimal(20,2),
       qfKey varchar(255) NOT NULL,
+      contributionPageCmsUrl TEXT NOT NULL,
       PRIMARY KEY (`invoice_id`)
     ) ENGINE=InnoDB;
   ";
   CRM_Core_DAO::executeQuery($sql);
 }
+
+// alter table civicrm_paytrail_payment_processor_invoice_data add column contributionPageCmsUrl TEXT NOT NULL; (for upgrade)
 
 /**
 * Implements CiviCRM 'buildForm' hook.
@@ -154,17 +156,17 @@ function Paytrail_civicrm_alterContent(&$content, $context, $tplName, &$object) 
 */
 function Paytrail_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName) {
   //Extension admin page
-  if($form instanceof Admin_Page_PaytrailAdmin) {
+  if($form instanceof CRM_Paytrail_Page_Admin) {
     $res = CRM_Core_Resources::singleton();
-    $res->addScriptFile('com.github.anttikekki.payment.paytrail', 'Admin/Page/admin.js');
+    $res->addScriptFile('com.github.anttikekki.payment.paytrail', 'assets/js/admin.js');
     
     //Add CMS neutral ajax callback URLs
     $res->addSetting(array('paytrail' => 
       array(
-        'getInitDataAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getInitData'),
-        'getConfigAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getConfig'),
-        'saveConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/saveConfigRow'),
-        'deleteConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/deleteConfigRow')
+        'getInitDataAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getInitData', NULL, FALSE, NULL, FALSE),
+        'getConfigAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/getConfig', NULL, FALSE, NULL, FALSE),
+        'saveConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/saveConfigRow', NULL, FALSE, NULL, FALSE),
+        'deleteConfigRowAjaxURL' =>  CRM_Utils_System::url('civicrm/paytrail/settings/ajax/deleteConfigRow', NULL, FALSE, NULL, FALSE)
       )
     ));
   }
@@ -175,25 +177,32 @@ function Paytrail_civicrm_alterTemplateFile($formName, &$form, $context, &$tplNa
 *
 * @param object $config the config object
 */
-function Paytrail_civicrm_config(&$config) {
+function Paytrail_civicrm_config(&$config= NULL) {
+  static $configured = FALSE;
+  if ($configured) {
+    return;
+  }
+  $configured = TRUE;
+
   $template =& CRM_Core_Smarty::singleton();
-  $extensionDir = dirname(__FILE__);
- 
-  // Add extension template directory to the Smarty templates path
-  if (is_array($template->template_dir)) {
-    array_unshift($template->template_dir, $extensionDir);
+
+  $extRoot = dirname(__FILE__) . DIRECTORY_SEPARATOR;
+  $extDir = $extRoot . 'templates';
+
+  if ( is_array( $template->template_dir ) ) {
+    array_unshift( $template->template_dir, $extDir );
   }
   else {
-    $template->template_dir = array($extensionDir, $template->template_dir);
+    $template->template_dir = array( $extDir, $template->template_dir );
   }
 
-  //Add extension folder to included folders list so that AJAX.php is found whe accessin it from URL
-  $include_path = $extensionDir . DIRECTORY_SEPARATOR . PATH_SEPARATOR . get_include_path();
+  $include_path = $extRoot . PATH_SEPARATOR . get_include_path( );
   set_include_path($include_path);
+
 }
 
 /**
-* Implemets CiviCRM 'xmlMenu' hook.
+* Implements CiviCRM 'xmlMenu' hook.
 *
 * @param array $files the array for files used to build the menu. You can append or delete entries from this file. 
 * You can also override menu items defined by CiviCRM Core.
@@ -338,9 +347,14 @@ class com_github_anttikekki_payment_paytrail extends CRM_Core_Payment {
    * @param array $params name value pair of form data
    * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
    */
-  public function doTransferCheckout(&$params, $component) {
-    $paymentHelper = new PaytrailPaymentHelper();
-    
+    public function doTransferCheckout(&$params, $component) {
+      $paymentHelper = new PaytrailPaymentHelper();
+
+      // For now works only with WordPress
+      if (function_exists('get_permalink') && $contributionPageCmsUrl = get_permalink()) {
+        $params['contributionPageCmsUrl'] = $contributionPageCmsUrl;
+      }
+
     //Save payment info for PaytrailIPN.php to retrieve
     $paymentHelper->insertInvoiceInfo($params, $component);
     

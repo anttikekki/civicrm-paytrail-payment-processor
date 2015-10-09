@@ -3,7 +3,7 @@
 /**
 * DAO for saving and deleting Paytrail payment processor extension configuration rows.
 */
-class PaytrailAdminDAO {
+class CRM_Paytrail_AdminDAO {
   
   /**
   * Checks if configuration rows exists for given primary keys.

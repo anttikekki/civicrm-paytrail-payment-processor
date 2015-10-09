@@ -1,14 +1,14 @@
 <?php
 
-require_once "PaytrailConfigHelper.php";
-require_once "PaytrailAdminDAO.php";
+// require_once "PaytrailConfigHelper.php";
+// require_once "PaytrailAdminDAO.php";
 
 /**
 * Ajax request listener for Paytrail Admin page Ajax calls.
 * This listener methods intercept URLs in form civicrm/paytrail/settings/ajax/*. This is configured in menu.xml.
 * All methods print JSON-response and terminates CiviCRM.
 */
-class Admin_Page_PaytrailAdminAjax {
+class CRM_Paytrail_Page_AdminAjax {
 
   /**
   * Returns init data required by extension admin page.
@@ -21,7 +21,7 @@ class Admin_Page_PaytrailAdminAjax {
   * relationshipTypes: Relationship types with id and name
   */
   public static function getInitData() {
-    $configHelper = new PaytrailConfigHelper();
+    $configHelper = new CRM_Paytrail_ConfigHelper();
   
     $result = array();
     $result["config"] = array_merge($configHelper->getDefaultValues(), $configHelper->getAllDatabaseConfigs());
@@ -35,7 +35,7 @@ class Admin_Page_PaytrailAdminAjax {
   * Listens URL civicrm/paytrail/settings/ajax/getConfig.
   */
   public static function getConfig() {
-    $configHelper = new PaytrailConfigHelper();
+    $configHelper = new CRM_Paytrail_ConfigHelper();
     echo json_encode(array_merge($configHelper->getDefaultValues(), $configHelper->getAllDatabaseConfigs()));
     CRM_Utils_System::civiExit();
   }
@@ -48,7 +48,7 @@ class Admin_Page_PaytrailAdminAjax {
   * Saved parameters are queried from $_GET.
   */
   public static function saveConfigRow() {
-    echo PaytrailAdminDAO::saveConfigRow($_GET);
+    echo CRM_Paytrail_AdminDAO::saveConfigRow($_GET);
     CRM_Utils_System::civiExit();
   }
   
@@ -60,7 +60,7 @@ class Admin_Page_PaytrailAdminAjax {
   * Delete parameters are queried from $_GET.
   */
   public static function deleteConfigRow() {
-    PaytrailAdminDAO::deleteConfigRow($_GET);
+    CRM_Paytrail_AdminDAO::deleteConfigRow($_GET);
     
     echo "ok";
     CRM_Utils_System::civiExit();
