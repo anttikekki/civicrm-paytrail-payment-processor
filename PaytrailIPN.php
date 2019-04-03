@@ -271,10 +271,10 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     $paymentProcessor = CRM_Financial_BAO_PaymentProcessor::getPayment($paymentProcessorID, $mode);
 	
     //Validate Paytrail result
-    require_once("Verkkomaksut_Module_Rest.php");
+    require_once("Paytrail_Module_Rest.php");
     $merchantId = $paymentProcessor['user_name'];
     $merchantSecret = $paymentProcessor['password'];
-    $module = new Verkkomaksut_Module_Rest($merchantId, $merchantSecret);
+    $module = new Paytrail_Module_Rest($merchantId, $merchantSecret);
     
     if($module->confirmPayment($_GET["ORDER_NUMBER"], $_GET["TIMESTAMP"], $_GET["PAID"], $_GET["METHOD"], $_GET["RETURN_AUTHCODE"])) {
       $success = true;
@@ -308,7 +308,8 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
         $finalURL = CRM_Utils_System::url('civicrm/contribute/transact', "_qf_ThankYou_display=1&qfKey={$privateData['qfKey']}", false, null, false);
       }
     }
-    CRM_Utils_System::redirect( $finalURL );
+
+    header("Location: " . $finalURL);
   }
   
   /**

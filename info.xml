@@ -16,10 +16,10 @@
     <email>antti.kekki@gmail.com</email>
   </maintainer>
   <releaseDate>2014-03-31</releaseDate>
-  <version>1.4</version>
+  <version>1.4.2</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>4.4</ver>
+    <ver>5.x</ver>
   </compatibility>
   <comments></comments>
 </extension>                                                                                              

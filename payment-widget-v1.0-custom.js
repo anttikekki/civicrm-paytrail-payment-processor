@@ -25,7 +25,7 @@
 var SV = {
     _funcOnComplete: null,
     jQuery: null,
-    serviceURL: "https://payment.verkkomaksut.fi",
+    serviceURL: "https://payment.paytrail.com",
     setServiceURL: function (a) {
         SV.serviceURL = a
     },

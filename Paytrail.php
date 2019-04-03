@@ -10,7 +10,7 @@
  * https://github.com/cray146/CiviCRM-Ogone-Payment-Processor
  */
 
-require_once 'Verkkomaksut_Module_Rest.php';
+require_once 'Paytrail_Module_Rest.php';
 require_once 'PaytrailConfigHelper.php';
 require_once 'PaytrailPaymentHelper.php';
 
@@ -204,16 +204,34 @@ function Paytrail_civicrm_xmlMenu( &$files ) {
 }
 
 /**
+ * Resolves the menu item we want to attach to
+ * Source: <https://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu>
+ **/
+
+function _getMenuKeyMax($menuArray) {
+  $max = array(max(array_keys($menuArray)));
+  foreach($menuArray as $v) { 
+    if (!empty($v['child'])) {
+      $max[] = _getMenuKeyMax($v['child']); 
+    }
+  }
+  return max($max);
+}
+
+/**
 * Implemets CiviCRM 'navigationMenu' hook.
 *
 * @param array $params the navigation menu array
 */
 function Paytrail_civicrm_navigationMenu(&$params) {
-    //Find last index of Administer menu children
-    $maxKey = max(array_keys($params[108]['child']));
+    //Find last menu index
+    $maxKey = _getMenuKeyMax($params);
+
+    // Find Admin menu
+    $adminId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Administer', 'id', 'name');
     
     //Add extension menu as Admin menu last children
-    $params[108]['child'][$maxKey+1] = array(
+    $params[$adminId]['child'][$maxKey+1] = array(
        'attributes' => array (
           'label'      => 'Paytrail',
           'name'       => 'Paytrail',

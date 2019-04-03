@@ -67,7 +67,7 @@ class PaytrailPaymentHelper {
   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute or event)
   * @param string $merchantId Paytrail merchant id
   * @param string $merchantSecret Paytrail merchant secret
-  * @return Verkkomaksut_Module_Rest_Result REST call result with redirect URL and token
+  * @return Paytrail_Module_Rest_Result REST call result with redirect URL and token
   */
   public function processPayment(&$params, $component, $merchantId, $merchantSecret) {
     $this->paytrailConfig->setPaymentProcessorParams($params);
@@ -79,12 +79,12 @@ class PaytrailPaymentHelper {
     // Create payment. Default Paytrail API mode is E1.
     $payment = &$this->createPaymentObject($params, $component);
 
-    // Send request to https://payment.verkkomaksut.fi with Merchant ID and Merchant secret
-    $module = new Verkkomaksut_Module_Rest($merchantId, $merchantSecret);
+    // Send request to https://payment.paytrail.com with Merchant ID and Merchant secret
+    $module = new Paytrail_Module_Rest($merchantId, $merchantSecret);
     try {
       $result = $module->processPayment($payment);
     }
-    catch(Verkkomaksut_Exception $e) {
+    catch(Paytrail_Exception $e) {
       CRM_Core_Error::fatal("Error contacting Paytrail: ".$e->getMessage().". Order number: ".$params['invoiceID']);
       exit();
     }
@@ -98,13 +98,13 @@ class PaytrailPaymentHelper {
   * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
   * @param array $params name value pair of form data
   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute or event)
-  * @return Verkkomaksut_Module_Rest_Payment Paytrail payment object
+  * @return Paytrail_Module_Rest_Payment Paytrail payment object
   */
   private function &createPaymentObject(&$params, $component) {
     // Return URL from Paytrail to extern directory PaytrailNotify.php
     $notifyURL = CRM_Core_Config::singleton()->userFrameworkResourceURL . "extern/PaytrailNotify.php";
   
-    $urlset = new Verkkomaksut_Module_Rest_Urlset(
+    $urlset = new Paytrail_Module_Rest_Urlset(
       $notifyURL, // success
       $notifyURL, // failure
       $notifyURL, // notify
@@ -124,14 +124,14 @@ class PaytrailPaymentHelper {
   *
   * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
   * @param array $params name value pair of form data
-  * @param Verkkomaksut_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
+  * @param Paytrail_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
-  * @return Verkkomaksut_Module_Rest_Payment Paytrail payment object
+  * @return Paytrail_Module_Rest_Payment Paytrail payment object
   */
   private function &createS1PaymentObject(&$params, $urlset, $component) {
     $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
-    $payment = new Verkkomaksut_Module_Rest_Payment_S1($orderNumber, $urlset, $price);
+    $payment = new Paytrail_Module_Rest_Payment_S1($orderNumber, $urlset, $price);
     
     return $payment;
   }
@@ -152,16 +152,16 @@ class PaytrailPaymentHelper {
   *
   * @link http://docs.paytrail.com/en/ch05s02.html#idp140474540882720
   * @param array $params name value pair of form data
-  * @param Verkkomaksut_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
+  * @param Paytrail_Module_Rest_Urlset $urlset Paytrail object holding all return URLs
   * @param string $component name of CiviCRM component that is using this Payment Processor (contribute, event)
-  * @return Verkkomaksut_Module_Rest_Payment Paytrail payment object
+  * @return Paytrail_Module_Rest_Payment Paytrail payment object
   */
   private function &createE1PaymentObject(&$params, $urlset, $component) {
     $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
     
     // An object is created to model payer’s data
-    $contact = new Verkkomaksut_Module_Rest_Contact(
+    $contact = new Paytrail_Module_Rest_Contact(
       $this->paytrailConfig->get("e1.$component.value.firstName"),      //First name. Required
       $this->paytrailConfig->get("e1.$component.value.lastName"),       //Last name. Required
       $this->paytrailConfig->get("e1.$component.value.email"),          //Email. Required
@@ -175,13 +175,13 @@ class PaytrailPaymentHelper {
     );
 
     // Payment creation
-    $payment = new Verkkomaksut_Module_Rest_Payment_E1($orderNumber, $urlset, $contact);
+    $payment = new Paytrail_Module_Rest_Payment_E1($orderNumber, $urlset, $contact);
     
     //Set optional description. This is only visible in Paytrail Merchant admin panel.
     $description = $this->paytrailConfig->get("e1.$component.value.firstName")." "
       .$this->paytrailConfig->get("e1.$component.value.lastName").". "
       .$this->paytrailConfig->get("e1.$component.value.productTitle").". "
-      .$this->paytrailConfig->get("e1.$component.value.productPrice")." €";
+      .$this->paytrailConfig->get("e1.$component.value.productPrice")."EUR";
     $payment->setDescription($description);
 
     // Adding one or more product rows to the payment
