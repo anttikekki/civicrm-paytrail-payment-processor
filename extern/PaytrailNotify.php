@@ -18,10 +18,10 @@ $config = CRM_Core_Config::singleton();
 $log = new CRM_Utils_SystemLogger();
 $log->alert('payment_notification processor_name=Paytrail', $_REQUEST);
 
-require_once 'PaytrailIPN.php';
+require_once 'ext/com.github.anttikekki.payment.paytrail/CRM/Core/Payment/PaytrailIPN.php';
 
 try {
-    $ipn = com_github_anttikekki_payment_paytrailIPN::main();
+    $ipn = CRM_Core_Payment_PaytrailIPN::main();
 }
 catch (CRM_Core_Exception $e) {
     CRM_Core_Error::debug_log_message($e->getMessage());

@@ -2,6 +2,8 @@
 
 /** 
  * Paytrail Instant Payment Notification (IPN).
+ * extern/PaytrailNotify.php invokes this file after Paytrail invokes url 
+ * http://domain.example/sites/all/modules/civicrm/extern/PaytrailNotify.php
  *
  * Portions of this file were based off the payment processor extension tutorial at:
  * http://wiki.civicrm.org/confluence/display/CRMDOC/Example+of+creating+a+payment+processor+extension
@@ -10,10 +12,13 @@
  * https://github.com/cray146/CiviCRM-Ogone-Payment-Processor
  *
  */
+
+use CRM_Paytrail_ExtensionUtil as E;
  
+require_once(CRM_Paytrail_ExtensionUtil::path("vendor/Paytrail_Module_Rest.php"));
 require_once 'CRM/Core/Payment/BaseIPN.php';
 
-class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN {
+class CRM_Core_Payment_PaytrailIPN extends CRM_Core_Payment_BaseIPN {
 
   /**
    * We only need one instance of this object. So we use the singleton
@@ -149,7 +154,7 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
    */
   static function &singleton($mode, $component, &$paymentProcessor) {
     if (self::$_singleton === null) {
-      self::$_singleton = new com_github_anttikekki_payment_paytrailIPN($mode, $paymentProcessor);
+      self::$_singleton = new CRM_Core_Payment_PaytrailIPN($mode, $paymentProcessor);
     }
     return self::$_singleton;
   }
@@ -271,7 +276,6 @@ class com_github_anttikekki_payment_paytrailIPN extends CRM_Core_Payment_BaseIPN
     $paymentProcessor = CRM_Financial_BAO_PaymentProcessor::getPayment($paymentProcessorID, $mode);
 	
     //Validate Paytrail result
-    require_once("Paytrail_Module_Rest.php");
     $merchantId = $paymentProcessor['user_name'];
     $merchantSecret = $paymentProcessor['password'];
     $module = new Paytrail_Module_Rest($merchantId, $merchantSecret);
