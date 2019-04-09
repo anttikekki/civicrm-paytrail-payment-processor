@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Paytrail IPN.
+ * Paytrail Instant Payment Notification (IPN).
+ * Paytrail calls this php file directly after payment with url 
+ * http://domain.example/sites/all/modules/civicrm/extern/PaytrailNotify.php
  *
  * Portions of this file were based off the payment processor extension tutorial at:
  * http://wiki.civicrm.org/confluence/display/CRMDOC/Example+of+creating+a+payment+processor+extension
@@ -11,7 +13,6 @@
 session_start( );
 
 require_once '../civicrm.config.php';
-//require_once 'CRM/Core/Config.php';
 
 $config = CRM_Core_Config::singleton();
 $log = new CRM_Utils_SystemLogger();

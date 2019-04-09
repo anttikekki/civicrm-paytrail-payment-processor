@@ -1,7 +1,7 @@
 <?php
 
 /** 
- * Paytrail IPN.
+ * Paytrail Instant Payment Notification (IPN).
  *
  * Portions of this file were based off the payment processor extension tutorial at:
  * http://wiki.civicrm.org/confluence/display/CRMDOC/Example+of+creating+a+payment+processor+extension
