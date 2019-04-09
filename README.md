@@ -1,11 +1,12 @@
 # civicrm-paytrail-payment-processor
 
-[CiviCRM](https://civicrm.org/) Payment Processor for [Paytrail](http://paytrail.com) (formerly Suomen Verkkomaksut). It uses Paytrail [REST API](http://docs.paytrail.com/en/ch04s03.html) and includes Paytrail REST [PHP Module file](http://docs.paytrail.com/files/Verkkomaksut_Module_Rest.php.zip). Default Paytrail API mode is E1. This payment processor support embedded payment buttons /default mode) and full page redirect to Paytrail payment selection page.
+[CiviCRM](https://civicrm.org/) Payment Processor for [Paytrail](http://paytrail.com) (formerly Suomen Verkkomaksut). It uses Paytrail [REST API](https://docs.paytrail.com/en/ch04s05.html) and includes Paytrail REST [PHP Module file](https://docs.paytrail.com/en/ch04s05.html#payment-api.rest.php). Default Paytrail API mode is E1. This payment processor only support full page redirect to Paytrail payment selection page. Embedded payment buttons are not supported.
 
 This payment processor is only tested with Dupal 7 and CiviCRM 5.
 
 #### Version history
 
+- [v1.5](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.5) Include and use [Civix](https://docs.civicrm.org/dev/en/latest/extensions/civix/)
 - [v1.4](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.4) Added configurations settings page
 - [v1.3](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.3) Added embedded payment buttons support
 - [v1.2](https://github.com/anttikekki/civicrm-paytrail-payment-processor/releases/tag/1.2) Added E1 API mode support and configuration support
@@ -14,7 +15,7 @@ This payment processor is only tested with Dupal 7 and CiviCRM 5.
 
 #### Information sent to Paytrail
 
-This payment processor can use S1 or E1 version of [payment API](http://docs.paytrail.com/en/ch05s02.html#idp140474540882720).
+This payment processor can use S1 or E1 version of [payment API](https://docs.paytrail.com/en/index-all-old.html).
 
 In S1 version only order number (CiviCRM invoice id) and amount is sent to Paytrail. This means there is no information about contribution or event visible in Paytrail admin site other than CiviCRM invoice id.
 
@@ -44,29 +45,23 @@ CiviCRM contribution invoice id is sent to Paytrail as transaction identificatio
 
 #### Installation
 
-1. Create `com.github.anttikekki.payment.paytrail` folder to CiviCRM `extension` directory and copy files into it. Extension directory has to be configured in _Administer -> System Settings -> Directories -> Extensions Directory_.
+1. Create `com.github.anttikekki.payment.paytrail` folder to CiviCRM `extension` directory and copy all files into it. Extension directory has to be configured in _Administer -> System Settings -> Directories -> Extensions Directory_. Defailt is `[DRUPAL_DIRECTORY]/sites/all/modules/civicrm/ext`.
 
-2. Copy `PaytrailIPN.php`, `PaytrailNotify.php` and `Paytrail_Module_Rest.php` to CiviCRM `extern` directory. Extern directory is in `[JOOMLA_DIRECTORY]/administrator/components/com_civicrm/civicrm/extern` in Joomla and `[DRUPAL_DIRECTORY]/sites/all/modules/civicrm/extern` in Drupal. There must also be copy of `Paytrail_Module_Rest.php` in `com.github.anttikekki.payment.paytrail` (yep, same file in two places).
+2. Copy `extern/PaytrailNotify.php` to CiviCRM `extern` directory. Extern directory is `[DRUPAL_DIRECTORY]/sites/all/modules/civicrm/extern` in Drupal.
 
 3. Configure payment processor CiviCRM common settings in _Administer->System Settings->Payment processors_. You need to insert `Merchant id` and `Merchant secret` information that Paytrail has provided. URL field can be left blank. To test payment processor you can use test id from [Paytrail docs](http://docs.paytrail.com/en/ch03.html).
 
-4. Configure Paytrail spesific settings in _Administer->Paytrail->Settings_
+4. Configure Paytrail spesific settings in _Administer -> System Settings -> Paytrail Settings_
 
 #### Licence
 
 GNU Affero General Public License
 
-#### Embedded payment buttons
-
-Embedded payment buttons require product price and unique invoice id (in S1 mode. A lot more info is required in E1 mode). This means that embedded buttons can not be shown in main Contribution or Event page. Buttons are embedded to confirmation page because of this limitation. Confirmation page has to be enabled in Contribution page settings. All other content in confirmation page is removed.
-
-Embedded buttons are enabled by default. Full page redirect to Paytrail payment selection page can be activated in configuration.
-
 #### Configuration
 
-Payment processor can be configured and customized by adding rows to `civicrm_paytrail_payment_processor_config` table in settings page at _Administer->Paytrail->Settings_. Payment processor default configurations are visible in settings page.
+Payment processor can be configured and customized by adding rows to `civicrm_paytrail_payment_processor_config` table in settings page at _Administer -> System Settings -> Paytrail Settings_. Payment processor default configurations are visible in settings page.
 
-Configuration allows to customize data sent to Paytrail in [E1](http://docs.paytrail.com/en/ch05s02.html#idp140474540882720) API mode. Default values for all payments are handy if all required values are not in Contribution page form or Event page form.
+Configuration allows to customize data sent to Paytrail in [E1](https://docs.paytrail.com/en/index-all-old.html) API mode. Default values for all payments are handy if all required values are not in Contribution page form or Event page form.
 
 Configurations have priority:
 
@@ -78,10 +73,9 @@ This priority order means that database configuration always overwrites other va
 
 ##### Common configuration
 
-| Key                      | Default | Description                                                                                      |
-| ------------------------ | ------- | ------------------------------------------------------------------------------------------------ |
-| `apiMode`                | `E1`    | API mode. `E1` or `S1`                                                                           |
-| `embeddedPaymentButtons` | `true`  | Enable embedded payment buttons? `true` for enable, any other value or no row at all for `false` |
+| Key       | Default | Description            |
+| --------- | ------- | ---------------------- |
+| `apiMode` | `E1`    | API mode. `E1` or `S1` |
 
 ##### Contribution page payment default values
 
