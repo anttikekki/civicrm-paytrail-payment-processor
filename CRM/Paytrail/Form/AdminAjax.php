@@ -1,6 +1,8 @@
 <?php
 
-require_once "PaytrailConfigHelper.php";
+use CRM_Paytrail_ExtensionUtil as E;
+
+require_once(CRM_Paytrail_ExtensionUtil::path("CRM/Core/Payment/PaytrailConfigHelper.php"));
 require_once "PaytrailAdminDAO.php";
 
 /**
@@ -8,7 +10,7 @@ require_once "PaytrailAdminDAO.php";
 * This listener methods intercept URLs in form civicrm/paytrail/settings/ajax/*. This is configured in menu.xml.
 * All methods print JSON-response and terminates CiviCRM.
 */
-class Admin_Page_PaytrailAdminAjax {
+class CRM_Paytrail_Form_AdminAjax {
 
   /**
   * Returns init data required by extension admin page.

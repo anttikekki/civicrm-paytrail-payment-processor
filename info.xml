@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <extension key="com.github.anttikekki.payment.paytrail" type="module">
   <downloadUrl>https://github.com/anttikekki/civicrm-paytrail-payment-processor/archive/1.4.zip</downloadUrl>
-  <file>Paytrail</file>
+  <file>paytrail</file>
   <name>Paytrail</name>
   <description>Paytrail Payment Processor</description>
   <urls>
@@ -22,4 +22,7 @@
     <ver>5.x</ver>
   </compatibility>
   <comments></comments>
+  <civix>
+    <namespace>CRM/Paytrail</namespace>
+  </civix>
 </extension>                                                                                              

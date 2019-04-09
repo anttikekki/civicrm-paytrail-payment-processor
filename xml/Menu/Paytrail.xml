@@ -3,27 +3,27 @@
   <item>
     <path>civicrm/paytrail/settings</path>
     <title>Paytrail Settings</title>
-    <page_callback>Admin_Page_PaytrailAdmin</page_callback>
+    <page_callback>CRM_Paytrail_Form_Admin</page_callback>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/paytrail/settings/ajax/getInitData</path>
-    <page_callback>Admin_Page_PaytrailAdminAjax::getInitData</page_callback>
+    <page_callback>CRM_Paytrail_Form_AdminAjax::getInitData</page_callback>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/paytrail/settings/ajax/getConfig</path>
-    <page_callback>Admin_Page_PaytrailAdminAjax::getConfig</page_callback>
+    <page_callback>CRM_Paytrail_Form_AdminAjax::getConfig</page_callback>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/paytrail/settings/ajax/saveConfigRow</path>
-    <page_callback>Admin_Page_PaytrailAdminAjax::saveConfigRow</page_callback>
+    <page_callback>CRM_Paytrail_Form_AdminAjax::saveConfigRow</page_callback>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/paytrail/settings/ajax/deleteConfigRow</path>
-    <page_callback>Admin_Page_PaytrailAdminAjax::deleteConfigRow</page_callback>
+    <page_callback>CRM_Paytrail_Form_AdminAjax::deleteConfigRow</page_callback>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
 </menu>

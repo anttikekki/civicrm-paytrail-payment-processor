@@ -27,38 +27,6 @@ class PaytrailPaymentHelper {
   public function &getPaytrailConfig() {
     return $this->paytrailConfig;
   }
-  
-  /**
-  * Is embedded payment buttons mode active?
-  * 
-  * @return boolean
-  */
-  public function isEmbeddedButtonsEnabled() {
-    return $this->paytrailConfig->get("embeddedPaymentButtons") === 'true';
-  }
-
-  /**
-  * Add embedded payment buttons to page. This only works in confirmation page.
-  *
-  * @param array $params name value pair of Payment processor data
-  * @param string $component name of CiviCRM component that is using this Payment Processor (contribute or event)
-  */
-  public function embeddPaymentButtons(&$params, $component) {
-    $this->paytrailConfig->setPaymentProcessorParams($params);
-  
-    //Load payment processor
-    $paymentProcessorID = $params['payment_processor'];
-    $processorDAO = new CRM_Financial_DAO_PaymentProcessor();
-    $processorDAO->get("id", $paymentProcessorID);
-    $merchantId = $processorDAO->user_name;
-    $merchantSecret = $processorDAO->password;
-    
-    $result = $this->processPayment($params, $component, $merchantId, $merchantSecret);
-  
-    CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.payment.paytrail', 'payment-widget-v1.0-custom.js');
-    CRM_Core_Resources::singleton()->addScriptFile('com.github.anttikekki.payment.paytrail', 'initPaymentWidget.js');
-    CRM_Core_Resources::singleton()->addSetting(array('paytrail' => array('token' => $result->getToken())));
-  }
 
   /**
   * Process payment by sending payment info to Paytrail with REST API.
@@ -160,7 +128,7 @@ class PaytrailPaymentHelper {
     $orderNumber = $params['invoiceID'];
     $price = (float)$params['amount'];
     
-    // An object is created to model payer’s data
+    // An object is created to model payerï¿½s data
     $contact = new Paytrail_Module_Rest_Contact(
       $this->paytrailConfig->get("e1.$component.value.firstName"),      //First name. Required
       $this->paytrailConfig->get("e1.$component.value.lastName"),       //Last name. Required
